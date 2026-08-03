@@ -4,6 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { Article } from '../types';
 import { news_sources } from './newsSources';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Build the edge function proxy URL
+const getRssProxyUrl = (feedUrl: string) => {
+  return `${SUPABASE_URL}/functions/v1/rss-proxy?url=${encodeURIComponent(feedUrl)}`;
+};
+
 type CustomItem = {
   title: string;
   link: string;
@@ -45,77 +53,64 @@ const CACHE_TIMESTAMP_KEY = 'news_cache_timestamp';
 const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 // Optimized CORS proxies - fastest first
-const CORS_PROXIES = [
-  'https://corsproxy.io/?',
-  'https://api.allorigins.win/raw?url=',
-];
-
 const sanitizeXml = (xml: string): string => {
   return xml
     .replace(/&(?![a-zA-Z0-9#]{1,7};)/g, '&amp;')
     .replace(/&amp;amp;/g, '&amp;');
 };
 
-// Optimized RSS fetch with faster timeouts and parallel proxy attempts
+// Fetch RSS feed via Supabase Edge Function proxy
 const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Article[]> => {
   console.log(`Fetching from ${sourceName}...`);
   
-  // Try all proxies in parallel instead of sequential
-  const proxyPromises = CORS_PROXIES.map(async (proxyUrl) => {
-    try {
-      const response = await axios.get(`${proxyUrl}${encodeURIComponent(sourceUrl)}`, {
-        timeout: 4000, // Reduced timeout
-        headers: {
-          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-        }
-      });
-      
-      if (!response.data) {
-        throw new Error('No data received');
-      }
-      
-      const sanitizedXml = sanitizeXml(String(response.data));
-      const feed = await parser.parseString(sanitizedXml);
-      
-      if (!feed.items || feed.items.length === 0) {
-        throw new Error('No items in feed');
-      }
-      
-      return feed.items.map(item => {
-        let imageUrl = '';
-        if (item['media:content']?.$?.url) {
-          imageUrl = item['media:content'].$.url;
-        } else if (item.enclosure?.url) {
-          imageUrl = item.enclosure.url;
-        } else if (item['media:thumbnail']?.[0]?.$?.url) {
-          imageUrl = item['media:thumbnail'][0].$.url;
-        }
-        
-        const content = item.content || item.contentSnippet || item.description || '';
-        
-        return {
-          id: uuidv4(),
-          title: item.title || 'Untitled',
-          link: item.link || '',
-          pubDate: item.pubDate || new Date().toISOString(),
-          content: content,
-          image: imageUrl,
-          source: sourceName
-        };
-      });
-      
-    } catch (error) {
-      throw error;
-    }
-  });
-
   try {
-    // Race all proxy attempts - use the first successful one
-    const articles = await Promise.any(proxyPromises);
+    const proxyUrl = getRssProxyUrl(sourceUrl);
+    const response = await axios.get(proxyUrl, {
+      timeout: 10000,
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+      }
+    });
+
+    if (!response.data) {
+      throw new Error('No data received');
+    }
+
+    const sanitizedXml = sanitizeXml(String(response.data));
+    const feed = await parser.parseString(sanitizedXml);
+
+    if (!feed.items || feed.items.length === 0) {
+      throw new Error('No items in feed');
+    }
+
+    const articles = feed.items.map(item => {
+      let imageUrl = '';
+      if (item['media:content']?.$?.url) {
+        imageUrl = item['media:content'].$.url;
+      } else if (item.enclosure?.url) {
+        imageUrl = item.enclosure.url;
+      } else if (item['media:thumbnail']?.[0]?.$?.url) {
+        imageUrl = item['media:thumbnail'][0].$.url;
+      }
+
+      const content = item.content || item.contentSnippet || item.description || '';
+
+      return {
+        id: uuidv4(),
+        title: item.title || 'Untitled',
+        link: item.link || '',
+        pubDate: item.pubDate || new Date().toISOString(),
+        content: content,
+        image: imageUrl,
+        source: sourceName
+      };
+    });
+
     console.log(`✅ ${sourceName}: ${articles.length} articles`);
     return articles;
   } catch (error) {
-    console.warn(`❌ All proxies failed for ${sourceName}`);
+    console.warn(`❌ Failed to fetch ${sourceName}:`, error);
     return [];
   }
 };
