@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Parser from 'rss-parser';
 import { v4 as uuidv4 } from 'uuid';
 import { Article } from '../types';
 import { news_sources } from './newsSources';
@@ -34,18 +33,86 @@ type CustomItem = {
   }[];
 };
 
-const parser = new Parser<any, CustomItem>({
-  customFields: {
-    item: [
-      ['media:content', 'media:content'],
-      ['media:thumbnail', 'media:thumbnail'],
-      'enclosure',
-      'content',
-      'description',
-      'contentSnippet',
-    ],
-  },
-});
+const parseRssXml = (xmlText: string): { items: CustomItem[] } => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+  
+  // Check for parsing errors
+  const parserError = xmlDoc.querySelector('parsererror');
+  if (parserError) {
+    throw new Error('XML parsing error: ' + parserError.textContent);
+  }
+
+  const items: CustomItem[] = [];
+  const itemElements = xmlDoc.querySelectorAll('item');
+
+  itemElements.forEach((itemEl) => {
+    const getTagText = (tagName: string): string => {
+      let el = itemEl.getElementsByTagName(tagName)[0];
+      if (!el && tagName.includes(':')) {
+        const localName = tagName.split(':').pop();
+        if (localName) {
+          el = itemEl.getElementsByTagName(localName)[0];
+        }
+      }
+      if (!el) {
+        try {
+          el = itemEl.querySelector(tagName.replace(':', '\\:')) as Element;
+        } catch {}
+      }
+      return el ? el.textContent || '' : '';
+    };
+
+    const getMediaUrl = (tagName: string): string => {
+      let el = itemEl.getElementsByTagName(tagName)[0];
+      if (!el && tagName.includes(':')) {
+        const localName = tagName.split(':').pop();
+        if (localName) {
+          el = itemEl.getElementsByTagName(localName)[0];
+        }
+      }
+      if (!el) {
+        try {
+          el = itemEl.querySelector(tagName.replace(':', '\\:')) as Element;
+        } catch {}
+      }
+      return el ? el.getAttribute('url') || '' : '';
+    };
+
+    const title = getTagText('title');
+    const link = getTagText('link');
+    const pubDate = getTagText('pubDate') || getTagText('pubdate') || getTagText('date');
+    const content = getTagText('content:encoded') || getTagText('encoded') || getTagText('description') || getTagText('summary');
+    const contentSnippet = getTagText('description') || getTagText('summary');
+
+    const mediaContentUrl = getMediaUrl('media:content');
+    const enclosureUrl = getMediaUrl('enclosure');
+    const mediaThumbnailUrl = getMediaUrl('media:thumbnail');
+
+    const customItem: CustomItem = {
+      title,
+      link,
+      pubDate,
+      content,
+      contentSnippet,
+      description: contentSnippet,
+    };
+
+    if (mediaContentUrl) {
+      customItem['media:content'] = { $: { url: mediaContentUrl } };
+    }
+    if (enclosureUrl) {
+      customItem.enclosure = { url: enclosureUrl };
+    }
+    if (mediaThumbnailUrl) {
+      customItem['media:thumbnail'] = [{ $: { url: mediaThumbnailUrl } }];
+    }
+
+    items.push(customItem);
+  });
+
+  return { items };
+};
 
 // Reduced cache duration for fresher content
 const CACHE_KEY = 'news_cache';
@@ -78,7 +145,7 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
     }
 
     const sanitizedXml = sanitizeXml(String(response.data));
-    const feed = await parser.parseString(sanitizedXml);
+    const feed = parseRssXml(sanitizedXml);
 
     if (!feed.items || feed.items.length === 0) {
       throw new Error('No items in feed');

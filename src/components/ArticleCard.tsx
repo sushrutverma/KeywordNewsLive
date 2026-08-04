@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, FC } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -6,13 +6,15 @@ import { Bookmark, Share2, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Article } from '../types';
 import { useNews } from '../contexts/NewsContext';
 import { aiService } from '../services/aiService';
+import { news_sources } from '../services/newsSources';
 
 interface ArticleCardProps {
   article: Article;
   keyword?: string;
+  isFeatured?: boolean;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ article, keyword }) => {
+const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => {
   const { savedArticles, saveArticle, removeFromSaved } = useNews();
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState('');
@@ -75,7 +77,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, keyword }) => {
 
   const handleShare = async () => {
     try {
-      if (navigator.share && navigator.canShare) {
+      if (navigator.share && typeof navigator.canShare === 'function') {
         await navigator.share({
           title: article.title || 'News Article',
           text: article.title || 'Check out this article',
@@ -134,50 +136,66 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, keyword }) => {
     }
   };
 
+  const getCategoryClass = () => {
+    if (!article.source) return '';
+    const sourceObj = news_sources.find(s => s.name.toLowerCase() === article.source.toLowerCase());
+    const category = sourceObj?.category || 'news';
+    return `card-${category.toLowerCase().replace(/\s+/g, '')}`;
+  };
+
   const formattedContent = formatContent(article.content || '');
 
   return (
     <motion.div
+      layoutId={`card-${article.id}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="article-card glass-card rounded-xl overflow-hidden mb-6 relative"
+      whileHover={{ y: -6, scale: 1.015 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className={`article-card glass-card rounded-xl overflow-hidden mb-6 relative card-glow-hover cursor-pointer ${getCategoryClass()}`}
       style={{ touchAction: 'pan-y' }}
     >
-      {article.image && (
-        <div className="w-full h-48 overflow-hidden">
-          <img
-            src={article.image}
-            alt={article.title || 'Article image'}
-            className="w-full h-full object-cover"
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-
-      <div className="p-6">
-        <div className="flex items-center mb-3">
-          <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark">
-            {article.source || 'Unknown'} • {formatDate(article.pubDate)}
-          </span>
-        </div>
-
-        <Link to={`/article/${article.id}`}>
-          <h2 className="text-xl font-playfair font-bold mb-3 text-primary dark:text-primary-dark">
-            {highlightKeyword(article.title || 'Untitled', keyword)}
-          </h2>
-        </Link>
-
-        {formattedContent && (
-          <p className="font-source-serif text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
-            {highlightKeyword(formattedContent, keyword)}
-          </p>
+      <Link to={`/article/${article.id}`} className="block">
+        {article.image && (
+          <div className={`w-full overflow-hidden ${isFeatured ? 'h-64 md:h-72' : 'h-48'}`}>
+            <motion.img
+              layoutId={`image-${article.id}`}
+              src={article.image}
+              alt={article.title || 'Article image'}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
         )}
 
-        <div className="flex justify-between items-center pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+        <div className="p-6 pb-0">
+          <div className="flex items-center mb-3">
+            <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark">
+              {article.source || 'Unknown'} • {formatDate(article.pubDate)}
+            </span>
+          </div>
+
+          <motion.h2
+            layoutId={`title-${article.id}`}
+            className={`font-playfair font-bold mb-3 text-primary dark:text-primary-dark hover:underline ${
+              isFeatured ? 'text-2xl md:text-3xl' : 'text-xl'
+            }`}
+          >
+            {highlightKeyword(article.title || 'Untitled', keyword)}
+          </motion.h2>
+
+          {formattedContent && (
+            <p className="font-source-serif text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+              {highlightKeyword(formattedContent, keyword)}
+            </p>
+          )}
+        </div>
+      </Link>
+
+      <div className="p-6 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="flex flex-wrap gap-2">
             <Link
               to={`/article/${article.id}`}
@@ -211,8 +229,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, keyword }) => {
             </button>
           </div>
         </div>
-      </div>
-
+      
       <AnimatePresence>
         {showSummary && (
           <motion.div

@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profileError) {
         console.error('Error creating profile:', profileError);
-        return { error: profileError as AuthError };
+        return { error: profileError as unknown as AuthError };
       }
     }
 

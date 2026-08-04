@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -6,6 +6,7 @@ import { ArrowLeft, Share2, Bookmark, ExternalLink, Sparkles, AlertCircle, Clock
 import { useNews } from '../contexts/NewsContext';
 import { Article } from '../types';
 import { aiService } from '../services/aiService';
+import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
 
 const ArticlePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -102,13 +103,25 @@ const ArticlePage = () => {
     }
   };
 
+  const getSentiment = () => {
+    if (!article) return 50;
+    const text = (article.content || '').toLowerCase();
+    let score = 50;
+    const positiveWords = ['gain', 'profit', 'rise', 'success', 'benefit', 'growth', 'positive', 'win', 'improve', 'advance', 'bullish', 'innovat', 'lead', 'excellent'];
+    const negativeWords = ['loss', 'decline', 'crash', 'fail', 'drop', 'negative', 'lose', 'fall', 'warning', 'bearish', 'risk', 'danger', 'concern', 'threat', 'difficult'];
+    positiveWords.forEach(w => { if (text.includes(w)) score += 4; });
+    negativeWords.forEach(w => { if (text.includes(w)) score -= 4; });
+    return Math.max(15, Math.min(85, score));
+  };
+
+  const sentiment = getSentiment();
+  const sentimentLabel = sentiment > 56 ? 'Optimistic / Positive' : sentiment < 44 ? 'Cautious / Negative' : 'Neutral';
+  const sentimentColor = sentiment > 56 ? 'text-emerald-500' : sentiment < 44 ? 'text-rose-500' : 'text-amber-500';
+
   if (!article) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">Loading article...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 max-w-3xl mx-auto">
+        <ArticlePageSkeleton />
       </div>
     );
   }
@@ -119,7 +132,8 @@ const ArticlePage = () => {
       {article.image && (
         <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10"></div>
-          <img
+          <motion.img
+            layoutId={`image-${article.id}`}
             src={article.image}
             alt={article.title}
             className="w-full h-full object-cover"
@@ -182,97 +196,144 @@ const ArticlePage = () => {
           className="max-w-4xl mx-auto px-4 sm:px-6"
         >
           {/* Article Card */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden">
-            
-            {/* Header Section */}
-            <div className="p-6 md:p-8 border-b border-gray-200 dark:border-gray-700">
-              {/* Article Meta */}
-              <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium">
-                  {article.source}
-                </span>
-                <div className="flex items-center text-gray-500 dark:text-gray-400">
-                  <Clock size={14} className="mr-1" />
-                  <span>{format(new Date(article.pubDate), 'MMM dd, yyyy')}</span>
-                </div>
-                {readingTime > 0 && (
-                  <div className="flex items-center text-gray-500 dark:text-gray-400">
-                    <Eye size={14} className="mr-1" />
-                    <span>{readingTime} min read</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Title */}
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-gray-900 dark:text-white leading-tight mb-6">
-                {article.title}
-              </h1>
-
-              {/* AI Summary Section */}
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-100 dark:border-indigo-800">
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg mr-3">
-                    <Sparkles className="text-white" size={16} />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">AI Summary</h2>
-                </div>
+          <motion.div
+            layoutId={`card-${article.id}`}
+            className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="flex flex-col lg:flex-row lg:divide-x lg:divide-gray-200/50 lg:dark:divide-zinc-800/50">
+              
+              {/* Left Column (60% width) - Main Reading Content */}
+              <div className="w-full lg:w-3/5 flex flex-col justify-between">
                 
-                {isSummarizing ? (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
-                    <span className="ml-3 text-gray-600 dark:text-gray-400">Generating intelligent summary...</span>
-                  </div>
-                ) : summaryError ? (
-                  <div className="flex items-center text-red-500 dark:text-red-400 py-3">
-                    <AlertCircle size={18} className="mr-2 flex-shrink-0" />
-                    <span>{summaryError}</span>
-                  </div>
-                ) : (
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
-                    {summary}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Article Content */}
-            <div className="p-6 md:p-8">
-              <div className="prose prose-lg dark:prose-invert max-w-none">
-                {article.content ? (
-                  <div className="font-source-serif text-gray-800 dark:text-gray-200">
-                    {formatContent(article.content)}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <AlertCircle className="text-gray-400 dark:text-gray-500" size={24} />
+                {/* Header Section */}
+                <div className="p-6 md:p-8 border-b border-gray-200/50 dark:border-zinc-800/50">
+                  {/* Article Meta */}
+                  <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark font-medium">
+                      {article.source}
+                    </span>
+                    <div className="flex items-center text-gray-500 dark:text-gray-400">
+                      <Clock size={14} className="mr-1" />
+                      <span>{format(new Date(article.pubDate), 'MMM dd, yyyy')}</span>
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-lg">No content available for this article.</p>
+                    {readingTime > 0 && (
+                      <div className="flex items-center text-gray-500 dark:text-gray-400">
+                        <Eye size={14} className="mr-1" />
+                        <span>{readingTime} min read</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Footer Action */}
-            <div className="p-6 md:p-8 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Want to read the complete article with all details?
+                  {/* Title */}
+                  <motion.h1
+                    layoutId={`title-${article.id}`}
+                    className="text-3xl font-playfair font-bold text-gray-900 dark:text-white leading-tight"
+                  >
+                    {article.title}
+                  </motion.h1>
                 </div>
-                <motion.a
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl font-medium"
-                >
-                  Read Full Article
-                  <ExternalLink size={16} className="ml-2" />
-                </motion.a>
+
+                {/* Article Content */}
+                <div className="p-6 md:p-8 flex-1">
+                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                    {article.content ? (
+                      <div className="font-source-serif text-gray-800 dark:text-gray-200 leading-relaxed text-lg whitespace-pre-wrap">
+                        {formatContent(article.content)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <AlertCircle className="text-gray-400 dark:text-gray-500" size={24} />
+                        </div>
+                        <p className="text-gray-500 dark:text-gray-400 text-lg">No content available for this article.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer Action */}
+                <div className="p-6 md:p-8 bg-gray-50/30 dark:bg-zinc-950/10 border-t border-gray-200/50 dark:border-zinc-800/50">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Want to read the complete article with all details?
+                    </div>
+                    <motion.a
+                      href={article.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow shadow-indigo-500/10 font-medium"
+                    >
+                      Read Full Article
+                      <ExternalLink size={16} className="ml-2" />
+                    </motion.a>
+                  </div>
+                </div>
+
               </div>
+
+              {/* Right Column (40% width) - Sticky AI Insights Panel */}
+              <div className="w-full lg:w-2/5 p-6 md:p-8 bg-gray-50/30 dark:bg-zinc-950/10 flex flex-col space-y-6 lg:max-h-[85vh] lg:overflow-y-auto lg:sticky lg:top-6">
+                
+                {/* AI Summary Section */}
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center mb-4">
+                    <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg mr-3 shadow shadow-indigo-500/10">
+                      <Sparkles className="text-white" size={16} />
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AI Summary</h2>
+                  </div>
+                  
+                  {isSummarizing ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary dark:border-primary-dark"></div>
+                      <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">Generating summary...</span>
+                    </div>
+                  ) : summaryError ? (
+                    <div className="flex items-center text-red-500 dark:text-red-400 py-3">
+                      <AlertCircle size={18} className="mr-2 flex-shrink-0" />
+                      <span className="text-sm">{summaryError}</span>
+                    </div>
+                  ) : (
+                    <p className="text-gray-700 dark:text-zinc-300 leading-relaxed text-sm whitespace-pre-line">
+                      {summary}
+                    </p>
+                  )}
+                </div>
+
+                {/* Tone & Sentiment Gauge */}
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 rounded-xl p-5 shadow-sm space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-zinc-400 font-medium">Tone & Sentiment</span>
+                    <span className={`font-semibold ${sentimentColor}`}>{sentimentLabel}</span>
+                  </div>
+                  <div className="relative h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-rose-400 via-amber-400 to-emerald-400 opacity-60" />
+                    <div 
+                      className="absolute top-0 w-2.5 h-2.5 rounded-full bg-gray-800 dark:bg-white shadow transition-all duration-700" 
+                      style={{ left: `${sentiment}%`, transform: 'translateY(-0.5px) translateX(-50%)' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Reading Analytics Card */}
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 rounded-xl p-5 shadow-sm space-y-2 text-xs text-gray-500 dark:text-zinc-400">
+                  <div className="font-semibold text-gray-700 dark:text-zinc-300 text-sm mb-2">Reading Analytics</div>
+                  <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                    <span>Estimate reading time</span>
+                    <span className="font-medium text-gray-800 dark:text-zinc-200">{readingTime} min</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span>Average reading speed</span>
+                    <span className="font-medium text-gray-800 dark:text-zinc-200">200 WPM</span>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
-          </div>
+          </motion.div>
 
           {/* No Image Fallback Header */}
           {!article.image && (

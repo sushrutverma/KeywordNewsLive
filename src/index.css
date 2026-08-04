@@ -3,22 +3,39 @@
 @tailwind utilities;
 
 /*——————————————————————————————————
-  1. Root variables (unchanged)
+  1. Root variables (Matte & Accent Palettes)
 ——————————————————————————————————*/
 :root {
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  --primary: #6366f1;
+  --primary: #4f46e5;
   --primary-dark: #818cf8;
-  --surface: rgba(255, 255, 255, 0.8);
-  --surface-dark: rgba(0, 0, 0, 0.8);
-  --accent: #FF4D6D;
-  --accent-dark: #FF758F;
-  --ripple: rgba(99, 102, 241, 0.1);
-  --ripple-dark: rgba(129, 140, 248, 0.2);
+  --accent: #db2777;
+  --accent-dark: #f472b6;
+  
+  /* Matte backgrounds */
+  --bg-light: #f8f9fa;
+  --bg-dark: #0e0e11;
+  
+  /* Card matte colors */
+  --card-bg-light: #ffffff;
+  --card-bg-dark: #16161a;
+  --card-border-light: #e4e4e7;
+  --card-border-dark: #27272a;
+  
+  /* Category Matte Accent Colors */
+  --color-technology: #3b82f6;
+  --color-business: #f97316;
+  --color-news: #10b981;
+  --color-sports: #06b6d4;
+  --color-entertainment: #ec4899;
+  --color-international: #8b5cf6;
+  
+  --ripple: rgba(79, 70, 229, 0.08);
+  --ripple-dark: rgba(129, 140, 248, 0.15);
 }
 
 /*——————————————————————————————————
-  2. html & body should allow scrolling and iOS momentum
+  2. html & body base styles
 ——————————————————————————————————*/
 html {
   -webkit-tap-highlight-color: transparent;
@@ -35,41 +52,76 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-y: auto;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-light);
+  color: #18181b;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark body {
-  background: #000000;
+  background-color: var(--bg-dark);
+  color: #f4f4f5;
+}
+
+/* Font mapping aliases */
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-source-serif {
+  font-family: 'Lora', serif;
 }
 
 /*——————————————————————————————————
-  3. Glass card, elevation, FAB, ripple, etc.
+  3. Matte card & elevation styling
 ——————————————————————————————————*/
 
-/* Glass card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  background-color: var(--card-bg-light);
+  border: 1px solid var(--card-border-light);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .glass-card {
-  background: rgba(0, 0, 0, 0.8);
-  border-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--card-bg-dark);
+  border-color: var(--card-border-dark);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.15);
 }
 
-/* Material Design elevation shadows */
-.elevation-1 {
-  backdrop-filter: blur(10px);
-  background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+/* Active Outline colors on hover */
+.card-glow-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dark .elevation-1 {
-  background: var(--surface-dark);
-  border-color: rgba(255, 255, 255, 0.1);
+.card-technology:hover {
+  border-color: var(--color-technology) !important;
+  box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.12) !important;
+}
+
+.card-business:hover {
+  border-color: var(--color-business) !important;
+  box-shadow: 0 10px 30px -10px rgba(249, 115, 22, 0.12) !important;
+}
+
+.card-topstories:hover, .card-national:hover, .card-news:hover {
+  border-color: var(--color-news) !important;
+  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.12) !important;
+}
+
+.card-sports:hover {
+  border-color: var(--color-sports) !important;
+  box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.12) !important;
+}
+
+.card-entertainment:hover {
+  border-color: var(--color-entertainment) !important;
+  box-shadow: 0 10px 30px -10px rgba(236, 72, 153, 0.12) !important;
+}
+
+.card-international:hover {
+  border-color: var(--color-international) !important;
+  box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.12) !important;
 }
 
 .elevation-2 {
@@ -232,4 +284,43 @@ input, textarea, [contenteditable="true"], p, span, div[class*="text"], article 
 /* Safe area insets */
 .pb-safe-bottom {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Premium Card Glow & Hover styles */
+.card-glow-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-width: 1px;
+}
+
+.card-glow-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .card-glow-hover:hover {
+  box-shadow: 0 20px 45px -15px rgba(129, 140, 248, 0.35);
+  border-color: rgba(129, 140, 248, 0.4);
 }

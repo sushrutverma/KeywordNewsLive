@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Settings, LogIn, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { ThemeToggle } from './ThemeToggle';
 
 const Header = () => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ const Header = () => {
       <div className="flex items-center">
         <h1 className="text-3xl font-bold text-primary dark:text-primary-dark font-unifraktur">Keywords</h1>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         {/* Info Button */}
         <div className="relative">
           <motion.button
@@ -50,6 +51,8 @@ const Header = () => {
             </motion.div>
           )}
         </div>
+
+        <ThemeToggle />
 
         {user ? (
           <Link to="/settings">

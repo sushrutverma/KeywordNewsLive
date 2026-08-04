@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ReactPullToRefresh from 'react-pull-to-refresh';
 import { useNews } from '../contexts/NewsContext';
@@ -6,6 +6,7 @@ import SearchBar from '../components/SearchBar';
 import ArticleCard from '../components/ArticleCard';
 import DurationFilter from '../components/DurationFilter';
 import Header from '../components/Header';
+import { ArticleCardSkeleton } from '../components/ArticleSkeleton';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
 const HomePage = () => {
@@ -26,9 +27,10 @@ const HomePage = () => {
   const ContentSection = () => (
     <div className="space-y-6">
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400 mb-4" size={32} />
-          <p className="text-gray-600 dark:text-gray-400">Loading the latest news...</p>
+        <div className="space-y-6">
+          <ArticleCardSkeleton />
+          <ArticleCardSkeleton />
+          <ArticleCardSkeleton />
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -58,15 +60,33 @@ const HomePage = () => {
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {filteredArticles.map((article) => (
-            <ArticleCard 
+        <motion.div 
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.08
+              }
+            }
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {filteredArticles.map((article, index) => (
+            <div 
               key={article.id} 
-              article={article} 
-              keyword={currentKeyword}
-            />
+              className={index === 0 ? 'md:col-span-2 lg:col-span-2' : ''}
+            >
+              <ArticleCard 
+                article={article} 
+                keyword={currentKeyword}
+                isFeatured={index === 0}
+              />
+            </div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -97,7 +117,7 @@ const HomePage = () => {
       ) : (
         <ReactPullToRefresh
           onRefresh={handleRefresh}
-          pullingContent={
+          icon={
             <div className="flex justify-center items-center py-2">
               <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />
               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
@@ -105,7 +125,7 @@ const HomePage = () => {
               </span>
             </div>
           }
-          refreshingContent={
+          loading={
             <div className="flex justify-center items-center py-2">
               <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />
               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">

@@ -2,10 +2,6 @@ import axios, { AxiosError } from 'axios';
 
 const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
 
-if (!MISTRAL_API_KEY) {
-  throw new Error('Missing Mistral API key in environment variables');
-}
-
 interface AIError {
   message: string;
   details?: string;
@@ -34,6 +30,12 @@ interface MistralResponse {
 
 export const aiService = {
   async analyze(text: string) {
+    if (!MISTRAL_API_KEY) {
+      return {
+        analysis: 'Mistral API key is not configured. Please set VITE_MISTRAL_API_KEY in your environment variables.'
+      };
+    }
+
     if (!text || typeof text !== 'string') {
       throw new Error('Invalid input: text must be a non-empty string');
     }
@@ -71,7 +73,7 @@ export const aiService = {
       };
 
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as AxiosError<any>;
         if (axiosError.response) {
           aiError.status = axiosError.response.status;
           aiError.details = axiosError.response.data?.error?.message || `Server responded with status ${axiosError.response.status}`;
@@ -96,6 +98,12 @@ export const aiService = {
   },
 
   async summarize(text: string) {
+    if (!MISTRAL_API_KEY) {
+      return {
+        summary: 'Mistral API key is not configured. Please set VITE_MISTRAL_API_KEY in your environment variables.'
+      };
+    }
+
     if (!text || typeof text !== 'string') {
       throw new Error('Invalid input: text must be a non-empty string');
     }
@@ -133,7 +141,7 @@ export const aiService = {
       };
 
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as AxiosError<any>;
         if (axiosError.response) {
           aiError.status = axiosError.response.status;
           aiError.details = axiosError.response.data?.error?.message || `Server responded with status ${axiosError.response.status}`;
