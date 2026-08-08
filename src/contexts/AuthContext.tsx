@@ -41,27 +41,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
-
-    if (!error && data.user) {
-      // Create a profile entry for the new user
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: data.user.id,
-            article_duration_filter: '7 days'
-          }
-        ]);
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        return { error: profileError as unknown as AuthError };
-      }
-    }
 
     return { error };
   };

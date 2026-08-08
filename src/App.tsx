@@ -1,9 +1,6 @@
-import { ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { ReactNode, useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { Home, Bookmark, Settings } from 'lucide-react';
-
-
 
 import HomePage from './pages/HomePage';
 import ArticlePage from './pages/ArticlePage';
@@ -11,10 +8,12 @@ import SavedArticlesPage from './pages/SavedArticlesPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 import ScrollNavigator from './components/ScrollNavigator';
+import { SearchModal } from './components/SearchModal';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { NewsProvider } from './contexts/NewsContext';
+import { NewsProvider, useNews } from './contexts/NewsContext';
 import { SearchHistoryProvider } from './contexts/SearchHistoryContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -48,68 +47,40 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
 function AppContent() {
   const { user } = useAuth();
+  const { setIsSearchOpen } = useNews();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+
+  // Listen for global Cmd+K / Ctrl+K events to open search modal
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [setIsSearchOpen]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      {/* Sidebar for Desktop navigation (only when user is logged in) */}
-      {user && (
-        <div className="hidden md:flex flex-col w-64 border-r border-gray-200/50 dark:border-gray-800/50 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md p-6 h-screen sticky top-0">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-primary dark:text-primary-dark font-unifraktur">Keywords</h1>
-            <p className="text-xs text-gray-500 mt-1">Your Curated Feed</p>
-          </div>
-          
-          <nav className="flex-1 space-y-2">
-            <NavLink 
-              to="/" 
-              className={({ isActive }) => 
-                `flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
-                  isActive 
-                    ? 'bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50'
-                }`
-              }
-            >
-              <Home className="w-5 h-5 mr-3" />
-              Home
-            </NavLink>
-            <NavLink 
-              to="/saved" 
-              className={({ isActive }) => 
-                `flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
-                  isActive 
-                    ? 'bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50'
-                }`
-              }
-            >
-              <Bookmark className="w-5 h-5 mr-3" />
-              Saved Articles
-            </NavLink>
-            <NavLink 
-              to="/settings" 
-              className={({ isActive }) => 
-                `flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
-                  isActive 
-                    ? 'bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50'
-                }`
-              }
-            >
-              <Settings className="w-5 h-5 mr-3" />
-              Settings
-            </NavLink>
-          </nav>
-          
-          <div className="pt-6 border-t border-gray-200/50 dark:border-gray-800/50 text-xs text-gray-500">
-            <div>Logged in as:</div>
-            <div className="font-semibold text-gray-700 dark:text-gray-300 truncate mt-1">{user.email}</div>
-          </div>
-        </div>
-      )}
+    <div className="flex flex-col md:flex-row min-h-screen bg-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      {/* Responsive unified Sidebar drawer / hover component */}
+      <Sidebar 
+        isOpen={isMobileSidebarOpen} 
+        onClose={() => setIsMobileSidebarOpen(false)} 
+      />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto md:pl-[76px]">
+        {!isAuthPage && (
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-6">
+            <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
+          </div>
+        )}
         <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pt-6 pb-24 md:pb-12">
           <Routes>
             <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
@@ -135,10 +106,8 @@ function AppContent() {
           </Routes>
         </div>
       </div>
-      
-      {/* Floating capsule nav bar for mobile */}
-      {user && <Navbar />}
       <ScrollNavigator />
+      <SearchModal />
     </div>
   );
 }

@@ -17,10 +17,10 @@
   --bg-dark: #0e0e11;
   
   /* Card matte colors */
-  --card-bg-light: #ffffff;
-  --card-bg-dark: #16161a;
-  --card-border-light: #e4e4e7;
-  --card-border-dark: #27272a;
+  --card-bg-light: rgba(255, 255, 255, 0.9);
+  --card-bg-dark: rgba(22, 22, 26, 0.85);
+  --card-border-light: rgba(228, 228, 231, 0.7);
+  --card-border-dark: rgba(39, 39, 42, 0.7);
   
   /* Category Matte Accent Colors */
   --color-technology: #3b82f6;
@@ -54,12 +54,15 @@ body {
   overflow-y: auto;
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: var(--bg-light);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='40' viewBox='0 0 100 40'%3E%3Cpath d='M 0 10 Q 25 0, 50 10 T 100 10' fill='none' stroke='rgba(79, 70, 229, 0.1)' stroke-width='1.5'/%3E%3Cpath d='M 0 30 Q 25 20, 50 30 T 100 30' fill='none' stroke='rgba(79, 70, 229, 0.1)' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-attachment: fixed;
   color: #18181b;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark body {
   background-color: var(--bg-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='40' viewBox='0 0 100 40'%3E%3Cpath d='M 0 10 Q 25 0, 50 10 T 100 10' fill='none' stroke='rgba(129, 140, 248, 0.07)' stroke-width='1.5'/%3E%3Cpath d='M 0 30 Q 25 20, 50 30 T 100 30' fill='none' stroke='rgba(129, 140, 248, 0.07)' stroke-width='1.5'/%3E%3C/svg%3E");
   color: #f4f4f5;
 }
 
@@ -78,15 +81,17 @@ body {
 
 .glass-card {
   background-color: var(--card-bg-light);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border-light);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 16px -6px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .glass-card {
   background-color: var(--card-bg-dark);
   border-color: var(--card-border-dark);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.3), 0 10px 15px -5px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Active Outline colors on hover */

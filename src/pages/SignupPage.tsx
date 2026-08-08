@@ -29,11 +29,11 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-transparent">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg"
+        className="max-w-md w-full space-y-8 glass-card p-8 rounded-xl"
       >
         <div className="text-center">
           <UserPlus className="mx-auto h-12 w-12 text-indigo-600 dark:text-indigo-400" />

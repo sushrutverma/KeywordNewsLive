@@ -15,6 +15,8 @@ interface NewsContextType {
   removeFromSaved: (articleId: string) => void;
   currentKeyword: string;
   isProgressiveLoading: boolean; // New state for progressive loading
+  isSearchOpen: boolean;
+  setIsSearchOpen: (isOpen: boolean) => void;
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -40,6 +42,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     return saved ? JSON.parse(saved) : [];
   });
   const [currentKeyword, setCurrentKeyword] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Updated useQuery with progressive loading
   const { data, isLoading, isError, refetch } = useQuery(
@@ -130,7 +133,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       saveArticle,
       removeFromSaved,
       currentKeyword,
-      isProgressiveLoading // New value available to components
+      isProgressiveLoading, // New value available to components
+      isSearchOpen,
+      setIsSearchOpen
     }}>
       {children}
     </NewsContext.Provider>

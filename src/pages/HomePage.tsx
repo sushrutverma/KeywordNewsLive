@@ -2,10 +2,8 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ReactPullToRefresh from 'react-pull-to-refresh';
 import { useNews } from '../contexts/NewsContext';
-import SearchBar from '../components/SearchBar';
+
 import ArticleCard from '../components/ArticleCard';
-import DurationFilter from '../components/DurationFilter';
-import Header from '../components/Header';
 import { ArticleCardSkeleton } from '../components/ArticleSkeleton';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
@@ -98,9 +96,6 @@ const HomePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Header />
-        <SearchBar />
-        <DurationFilter />
         {currentKeyword && (
           <div className="mb-4">
             <span className="text-sm text-gray-600 dark:text-gray-400">
