@@ -59,8 +59,8 @@ const SignupPage = () => {
       }
 
       navigate('/');
-    } catch (err) {
-      setError('Failed to create an account. Please try again.');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to create an account. Please try again.');
     } finally {
       setLoading(false);
     }

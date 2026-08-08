@@ -21,8 +21,8 @@ const LoginPage = () => {
       const { error: signInError } = await signIn(email, password);
       if (signInError) throw signInError;
       navigate('/');
-    } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to sign in. Please check your credentials.');
     } finally {
       setLoading(false);
     }
