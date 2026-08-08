@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, LogIn, Menu, Search, User } from 'lucide-react';
@@ -8,13 +8,62 @@ import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   onMenuClick?: () => void;
-  visible?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, visible = true }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const { setIsSearchOpen } = useNews();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [visible, setVisible] = useState(true);
+
+  // Monitor scroll movements locally to show/hide header based on direction (avoids root App re-renders)
+  useEffect(() => {
+    let lastY = 0;
+
+    const handleScroll = (e: Event) => {
+      if (window.innerWidth >= 768) {
+        setVisible(prev => prev ? prev : true);
+        return;
+      }
+
+      const target = e.target as HTMLElement | Document;
+      const currentY = target === document || target instanceof Document 
+        ? window.scrollY 
+        : (target as HTMLElement).scrollTop;
+
+      const diff = currentY - lastY;
+
+      // Scroll down: hide header
+      if (diff > 5 && currentY > 80) {
+        setVisible(prev => {
+          if (prev) return false;
+          return prev;
+        });
+      } 
+      // Scroll up: show header
+      else if (diff < -15) {
+        setVisible(prev => {
+          if (!prev) return true;
+          return prev;
+        });
+      }
+
+      // Always show header at page top
+      if (currentY <= 10) {
+        setVisible(prev => {
+          if (!prev) return true;
+          return prev;
+        });
+      }
+
+      lastY = currentY;
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
 
   return (
     <header 

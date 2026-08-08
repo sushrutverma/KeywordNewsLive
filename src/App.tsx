@@ -49,7 +49,6 @@ function AppContent() {
   const { user } = useAuth();
   const { setIsSearchOpen } = useNews();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
@@ -67,56 +66,7 @@ function AppContent() {
     };
   }, [setIsSearchOpen]);
 
-  // Monitor scroll movements to show/hide header based on scroll direction
-  useEffect(() => {
-    let lastY = 0;
-
-    const handleScroll = (e: Event) => {
-      // Only trigger on mobile viewports (< 768px)
-      if (window.innerWidth >= 768) {
-        setIsHeaderVisible(prev => prev ? prev : true);
-        return;
-      }
-
-      const target = e.target as HTMLElement | Document;
-      const currentY = target === document || target instanceof Document 
-        ? window.scrollY 
-        : (target as HTMLElement).scrollTop;
-
-      const diff = currentY - lastY;
-
-      // Scroll down: hide header if scrolled down and passed 80px offset
-      if (diff > 5 && currentY > 80) {
-        setIsHeaderVisible(prev => {
-          if (prev) return false;
-          return prev;
-        });
-      } 
-      // Scroll up: show header if scrolled up by more than 15px
-      else if (diff < -15) {
-        setIsHeaderVisible(prev => {
-          if (!prev) return true;
-          return prev;
-        });
-      }
-
-      // Always show header at the very top of the page
-      if (currentY <= 10) {
-        setIsHeaderVisible(prev => {
-          if (!prev) return true;
-          return prev;
-        });
-      }
-
-      lastY = currentY;
-    };
-
-    // Use capture phase (true) to intercept scroll events globally
-    window.addEventListener('scroll', handleScroll, true);
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-    };
-  }, [location.pathname]);
+  // Scroll event listener is moved down into Header.tsx to prevent AppContent from re-rendering
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -130,7 +80,7 @@ function AppContent() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto md:pl-[76px]">
         {!isAuthPage && (
           <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-6">
-            <Header onMenuClick={() => setIsMobileSidebarOpen(true)} visible={isHeaderVisible} />
+            <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
           </div>
         )}
         <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pt-6 max-md:pt-24 pb-24 md:pb-12">
