@@ -20,6 +20,44 @@ const SignupPage = () => {
     try {
       const { error: signUpError } = await signUp(email, password);
       if (signUpError) throw signUpError;
+
+      // Send custom welcome email via Netlify serverless function
+      try {
+        const siteOrigin = window.location.origin;
+        await fetch('/.netlify/functions/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: email,
+            subject: 'Welcome to Keywords News!',
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; border-radius: 16px; background-color: #ffffff; border: 1px solid #f3f4f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h1 style="color: #4f46e5; font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -0.025em;">Keywords News</h1>
+                  <p style="color: #6b7280; font-size: 14px; margin-top: 4px; margin-bottom: 0;">Your Personalized News Intelligence Feed</p>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #f3f4f6; margin-bottom: 24px;" />
+                <p style="font-size: 16px; color: #1f2937; line-height: 1.6; margin-top: 0;">Hello,</p>
+                <p style="font-size: 16px; color: #374151; line-height: 1.6;">Thank you for signing up for <strong>Keywords News</strong>! We're excited to help you customize your news reading experience.</p>
+                <p style="font-size: 16px; color: #374151; line-height: 1.6;">You can now set up your target keywords, explore feeds, and view elevated glassmorphic cards configured to keep track of topics that matter to you.</p>
+                <div style="text-align: center; margin: 36px 0;">
+                  <a href="${siteOrigin}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">Explore Your Feed</a>
+                </div>
+                <p style="font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 0;">Happy reading,<br />The Keywords News Team</p>
+                <hr style="border: 0; border-top: 1px solid #f3f4f6; margin-top: 32px; margin-bottom: 16px;" />
+                <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+                  Developed by Sushrut Verma. If you did not create this account, please ignore this email.
+                </p>
+              </div>
+            `
+          })
+        });
+      } catch (emailErr) {
+        console.error('Failed to dispatch welcome email:', emailErr);
+      }
+
       navigate('/');
     } catch (err) {
       setError('Failed to create an account. Please try again.');
