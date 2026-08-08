@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, visible = true }) => {
 
   return (
     <header 
-      className={`glass-card backdrop-blur-md px-6 py-4 rounded-2xl flex items-center justify-between mb-8 shadow-sm border border-gray-200/40 dark:border-zinc-850/40 w-full relative z-30 transition-all duration-300 ease-in-out
+      className={`glass-card backdrop-blur-md px-6 py-4 rounded-2xl flex items-center justify-between mb-8 shadow-sm border border-gray-200/40 dark:border-zinc-850/40 w-full relative z-30 transition-[transform,opacity] duration-300 ease-in-out
         max-md:fixed max-md:top-4 max-md:left-4 max-md:right-4 max-md:w-[calc(100%-2rem)] max-md:mb-0 max-md:shadow-lg
         ${visible ? 'translate-y-0 opacity-100' : 'max-md:-translate-y-28 max-md:opacity-0 max-md:pointer-events-none'}
       `}

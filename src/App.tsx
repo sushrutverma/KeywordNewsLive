@@ -75,18 +75,24 @@ function AppContent() {
     const handleScroll = () => {
       // Only trigger on mobile viewports (< 768px)
       if (window.innerWidth >= 768) {
-        setIsHeaderVisible(true);
+        setIsHeaderVisible(prev => prev ? prev : true);
         return;
       }
 
-      // Hide header immediately on scroll start
-      setIsHeaderVisible(false);
+      // Hide header immediately on scroll start (only update if it is currently visible)
+      setIsHeaderVisible(prev => {
+        if (prev) return false;
+        return prev;
+      });
 
       window.clearTimeout(scrollTimeout);
 
       // Show header when scrolling has stopped
       scrollTimeout = window.setTimeout(() => {
-        setIsHeaderVisible(true);
+        setIsHeaderVisible(prev => {
+          if (!prev) return true;
+          return prev;
+        });
       }, 250);
     };
 
