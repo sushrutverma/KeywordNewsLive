@@ -8,6 +8,7 @@ import SavedArticlesPage from './pages/SavedArticlesPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import OnboardingPage from './pages/OnboardingPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { SearchModal } from './components/SearchModal';
@@ -27,7 +28,8 @@ const queryClient = new QueryClient({
 });
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -38,18 +40,26 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Redirect to onboarding if profile is not completed
+  const hasCompletedOnboarding = profile && profile.full_name && profile.occupation;
+  if (!hasCompletedOnboarding && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
 };
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { setIsSearchOpen } = useNews();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isOnboardingPage = location.pathname === '/onboarding';
+  const hideLayout = isAuthPage || isOnboardingPage;
 
   // Listen for global Cmd+K / Ctrl+K events to open search modal
   useEffect(() => {
@@ -65,27 +75,49 @@ function AppContent() {
     };
   }, [setIsSearchOpen]);
 
-  // Scroll event listener is moved down into Header.tsx to prevent AppContent from re-rendering
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect to onboarding if logged in but onboarding is not completed
+  const hasCompletedOnboarding = profile && profile.full_name && profile.occupation;
+  if (user && !hasCompletedOnboarding && !isOnboardingPage && !isAuthPage) {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300">
       {/* Responsive unified Sidebar drawer / hover component */}
-      <Sidebar 
-        isOpen={isMobileSidebarOpen} 
-        onClose={() => setIsMobileSidebarOpen(false)} 
-      />
+      {!hideLayout && (
+        <Sidebar 
+          isOpen={isMobileSidebarOpen} 
+          onClose={() => setIsMobileSidebarOpen(false)} 
+        />
+      )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto md:pl-[76px]">
-        {!isAuthPage && (
+      <div className={`flex-1 flex flex-col min-w-0 h-screen overflow-y-auto ${!hideLayout ? 'md:pl-[76px]' : ''}`}>
+        {!hideLayout && (
           <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-6">
             <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
           </div>
         )}
-        <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pt-6 max-md:pt-24 pb-24 md:pb-12">
+        <div className={`flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 ${!hideLayout ? 'pt-6 max-md:pt-24 pb-24 md:pb-12' : 'flex items-center justify-center'}`}>
           <Routes>
-            <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
-            <Route path="/signup" element={user ? <Navigate to="/" /> : <SignupPage />} />
+            <Route path="/login" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <LoginPage />} />
+            <Route path="/signup" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <SignupPage />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/" element={<HomePage />} />
             <Route path="/article/:id" element={<ArticlePage />} />
             <Route
