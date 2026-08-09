@@ -182,7 +182,45 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
   }
 };
 
-// Interleaves articles to enforce 70% Indian / 30% World mix
+// Interleaves articles from different sources in a round-robin style to ensure source diversity
+export const interleaveBySource = (articles: Article[]): Article[] => {
+  if (articles.length === 0) return articles;
+
+  // Group by source name
+  const groups: Record<string, Article[]> = {};
+  articles.forEach(art => {
+    if (!groups[art.source]) {
+      groups[art.source] = [];
+    }
+    groups[art.source].push(art);
+  });
+
+  const sources = Object.keys(groups);
+  const result: Article[] = [];
+  let added = true;
+  let indexMap: Record<string, number> = {};
+  
+  sources.forEach(src => {
+    indexMap[src] = 0;
+  });
+
+  // Round-robin selection
+  while (added) {
+    added = false;
+    for (const src of sources) {
+      const idx = indexMap[src];
+      if (idx < groups[src].length) {
+        result.push(groups[src][idx]);
+        indexMap[src] = idx + 1;
+        added = true;
+      }
+    }
+  }
+
+  return result;
+};
+
+// Interleaves articles to enforce 70% Indian / 30% World mix, while preventing consecutive duplicates from same sources
 export const interleaveArticles = (articles: Article[]): Article[] => {
   const sourceToIsIndianMap: Record<string, boolean> = {};
   news_sources.forEach(src => {
@@ -195,25 +233,29 @@ export const interleaveArticles = (articles: Article[]): Article[] => {
   console.log(`[Interleave] Input: ${articles.length} articles. Indian: ${indianArticles.length}, World: ${worldArticles.length}`);
 
   if (indianArticles.length === 0 || worldArticles.length === 0) {
-    console.log(`[Interleave] Falling back to original list because one of the categories is empty.`);
-    return articles;
+    console.log(`[Interleave] One of the categories is empty. Running pure source round-robin interleaving.`);
+    return interleaveBySource(articles);
   }
+
+  // Interleave each group by source first to get maximum diversity
+  const indianInterleaved = interleaveBySource(indianArticles);
+  const worldInterleaved = interleaveBySource(worldArticles);
 
   const result: Article[] = [];
   let indIdx = 0;
   let worldIdx = 0;
 
-  while (indIdx < indianArticles.length || worldIdx < worldArticles.length) {
+  while (indIdx < indianInterleaved.length || worldIdx < worldInterleaved.length) {
     let indAdded = 0;
-    while (indAdded < 7 && indIdx < indianArticles.length) {
-      result.push(indianArticles[indIdx]);
+    while (indAdded < 7 && indIdx < indianInterleaved.length) {
+      result.push(indianInterleaved[indIdx]);
       indIdx++;
       indAdded++;
     }
 
     let worldAdded = 0;
-    while (worldAdded < 3 && worldIdx < worldArticles.length) {
-      result.push(worldArticles[worldIdx]);
+    while (worldAdded < 3 && worldIdx < worldInterleaved.length) {
+      result.push(worldInterleaved[worldIdx]);
       worldIdx++;
       worldAdded++;
     }
