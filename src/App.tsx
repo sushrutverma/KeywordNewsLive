@@ -10,7 +10,6 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import ScrollNavigator from './components/ScrollNavigator';
 import { SearchModal } from './components/SearchModal';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NewsProvider, useNews } from './contexts/NewsContext';
@@ -108,7 +107,6 @@ function AppContent() {
           </Routes>
         </div>
       </div>
-      <ScrollNavigator />
       <SearchModal />
     </div>
   );
