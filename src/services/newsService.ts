@@ -44,7 +44,13 @@ const parseRssXml = (xmlText: string): { items: CustomItem[] } => {
   }
 
   const items: CustomItem[] = [];
-  const itemElements = xmlDoc.querySelectorAll('item');
+  let itemElements = xmlDoc.querySelectorAll('item');
+  let isAtom = false;
+
+  if (itemElements.length === 0) {
+    itemElements = xmlDoc.querySelectorAll('entry');
+    isAtom = true;
+  }
 
   itemElements.forEach((itemEl) => {
     const getTagText = (tagName: string): string => {
@@ -80,9 +86,18 @@ const parseRssXml = (xmlText: string): { items: CustomItem[] } => {
     };
 
     const title = getTagText('title');
-    const link = getTagText('link');
-    const pubDate = getTagText('pubDate') || getTagText('pubdate') || getTagText('date');
-    const content = getTagText('content:encoded') || getTagText('encoded') || getTagText('description') || getTagText('summary');
+    
+    // Atom links are inside href attribute: <link href="..."/>
+    let link = '';
+    if (isAtom) {
+      const linkEl = itemEl.querySelector('link');
+      link = linkEl ? linkEl.getAttribute('href') || '' : '';
+    } else {
+      link = getTagText('link');
+    }
+
+    const pubDate = getTagText('pubDate') || getTagText('pubdate') || getTagText('date') || getTagText('published') || getTagText('updated');
+    const content = getTagText('content:encoded') || getTagText('encoded') || getTagText('content') || getTagText('description') || getTagText('summary');
     const contentSnippet = getTagText('description') || getTagText('summary');
 
     const mediaContentUrl = getMediaUrl('media:content');
@@ -121,7 +136,13 @@ const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 // Optimized CORS proxies - fastest first
 const sanitizeXml = (xml: string): string => {
-  return xml
+  let cleaned = xml.trim();
+  // Remove Byte Order Mark (BOM) if present
+  if (cleaned.charCodeAt(0) === 0xFEFF) {
+    cleaned = cleaned.substring(1);
+  }
+  return cleaned
+    .replace(/\s+crossorigin(?=\s|>|\/)/g, ' crossorigin="anonymous"')
     .replace(/&(?![a-zA-Z0-9#]{1,7};)/g, '&amp;')
     .replace(/&amp;amp;/g, '&amp;');
 };
@@ -142,6 +163,14 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
 
     if (!response.data) {
       throw new Error('No data received');
+    }
+
+    // Check if proxy returned a JSON error response
+    if (typeof response.data === 'object' && response.data !== null) {
+      if ('error' in response.data) {
+        throw new Error((response.data as any).error);
+      }
+      throw new Error('Received JSON response instead of XML feed');
     }
 
     const sanitizedXml = sanitizeXml(String(response.data));

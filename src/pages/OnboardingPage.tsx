@@ -31,7 +31,7 @@ const OnboardingPage = () => {
 
   const { upsertProfile, profile } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { followedTopics, toggleFollowTopic, setFollowedTopics } = useNews();
+  const { followedTopics, toggleFollowTopic } = useNews();
   const navigate = useNavigate();
 
   // If user somehow already has finished onboarding, redirect to homepage
