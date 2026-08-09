@@ -192,7 +192,10 @@ export const interleaveArticles = (articles: Article[]): Article[] => {
   const indianArticles = articles.filter(art => sourceToIsIndianMap[art.source] === true);
   const worldArticles = articles.filter(art => sourceToIsIndianMap[art.source] === false);
 
+  console.log(`[Interleave] Input: ${articles.length} articles. Indian: ${indianArticles.length}, World: ${worldArticles.length}`);
+
   if (indianArticles.length === 0 || worldArticles.length === 0) {
+    console.log(`[Interleave] Falling back to original list because one of the categories is empty.`);
     return articles;
   }
 
@@ -216,6 +219,7 @@ export const interleaveArticles = (articles: Article[]): Article[] => {
     }
   }
 
+  console.log(`[Interleave] Interleaving complete. Output: ${result.length} articles.`);
   return result;
 };
 

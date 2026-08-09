@@ -81,6 +81,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   // Deriving filteredArticles reactively
   useEffect(() => {
     let result = articles;
+    console.log(`[NewsContext] useEffect - articles size: ${articles.length}, selectedTopicId: ${selectedTopicId}, keyword: "${currentKeyword}"`);
 
     // Filter by topic first
     if (selectedTopicId !== 'all') {
@@ -88,6 +89,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         const topicId = sourceToTopicMap[article.source];
         return topicId === selectedTopicId;
       });
+      console.log(`[NewsContext] filtered by topic - remaining: ${result.length}`);
     }
 
     // Filter by keyword if search is active
@@ -98,6 +100,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
           article.title.toLowerCase().includes(lowerKeyword) ||
           (article.content && article.content.toLowerCase().includes(lowerKeyword))
       );
+      console.log(`[NewsContext] filtered by keyword - remaining: ${result.length}`);
     }
 
     setFilteredArticles(result);
