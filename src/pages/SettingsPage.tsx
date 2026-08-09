@@ -4,12 +4,12 @@ import { Settings, Moon, Sun, Trash2, RefreshCw, Globe, ExternalLink } from 'luc
 import { useTheme } from '../contexts/ThemeContext';
 import { useSearchHistory } from '../contexts/SearchHistoryContext';
 import { useNews } from '../contexts/NewsContext';
-import { news_sources } from '../services/newsSources';
+import { news_sources, topics } from '../services/newsSources';
 
 const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme();
   const { searchHistory, clearHistory } = useSearchHistory();
-  const { refreshNews } = useNews();
+  const { refreshNews, followedTopics, toggleFollowTopic } = useNews();
 
   return (
     <div className="container mx-auto p-4">
@@ -50,6 +50,42 @@ const SettingsPage = () => {
                 transition={{ type: 'spring', stiffness: 700, damping: 30 }}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Customized Feed Topics */}
+        <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-2 text-indigo-700 dark:text-indigo-300">Customized Feed Topics</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Choose which topics you want to see on your homepage. (Must keep at least one followed)
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {topics.map((topic) => {
+              const isFollowed = followedTopics.includes(topic.id);
+              return (
+                <div 
+                  key={topic.id}
+                  className="flex items-center justify-between p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+                >
+                  <div className="pr-4">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">{topic.name}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{topic.description}</p>
+                  </div>
+                  <div
+                    className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer flex-shrink-0 transition-colors duration-250 ${
+                      isFollowed ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-700'
+                    }`}
+                    onClick={() => toggleFollowTopic(topic.id)}
+                  >
+                    <motion.div
+                      className="bg-white w-5 h-5 rounded-full shadow-md"
+                      animate={{ x: isFollowed ? 24 : 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

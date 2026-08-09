@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import { fetchNewsProgressively } from '../services/newsService'; // Updated import
+import { fetchNewsProgressively } from '../services/newsService';
+import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 
 interface NewsContextType {
@@ -14,9 +15,13 @@ interface NewsContextType {
   saveArticle: (article: Article) => void;
   removeFromSaved: (articleId: string) => void;
   currentKeyword: string;
-  isProgressiveLoading: boolean; // New state for progressive loading
+  isProgressiveLoading: boolean;
   isSearchOpen: boolean;
   setIsSearchOpen: (isOpen: boolean) => void;
+  followedTopics: string[];
+  toggleFollowTopic: (topicId: string) => void;
+  selectedTopicId: string;
+  setSelectedTopicId: (topicId: string) => void;
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -44,31 +49,85 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   const [currentKeyword, setCurrentKeyword] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Updated useQuery with progressive loading
-  const { data, isLoading, isError, refetch } = useQuery(
-    'news', 
+  // Topics and filtering state
+  const [followedTopics, setFollowedTopics] = useState<string[]>(() => {
+    const saved = localStorage.getItem('followedTopics');
+    return saved ? JSON.parse(saved) : [
+      'daily-news',
+      'upsc-policy',
+      'tech-design',
+      'mens-style',
+      'running-fitness',
+      'photography-video',
+      'sports-auto'
+    ];
+  });
+  const [selectedTopicId, setSelectedTopicId] = useState<string>('all');
+
+  // Fast mapping from source name to its topic category
+  const sourceToTopicMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    news_sources.forEach(src => {
+      map[src.name] = src.category;
+    });
+    return map;
+  }, []);
+
+  // Sync followedTopics to local storage
+  useEffect(() => {
+    localStorage.setItem('followedTopics', JSON.stringify(followedTopics));
+  }, [followedTopics]);
+
+  // Deriving filteredArticles reactively
+  useEffect(() => {
+    let result = articles;
+
+    // Filter by topic first
+    if (selectedTopicId !== 'all') {
+      result = result.filter(article => {
+        const topicId = sourceToTopicMap[article.source];
+        return topicId === selectedTopicId;
+      });
+    }
+
+    // Filter by keyword if search is active
+    if (currentKeyword.trim()) {
+      const lowerKeyword = currentKeyword.toLowerCase();
+      result = result.filter(
+        article =>
+          article.title.toLowerCase().includes(lowerKeyword) ||
+          (article.content && article.content.toLowerCase().includes(lowerKeyword))
+      );
+    }
+
+    setFilteredArticles(result);
+  }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap]);
+
+  // Adjust active topic if the user unfollows their currently selected topic
+  useEffect(() => {
+    if (selectedTopicId !== 'all' && !followedTopics.includes(selectedTopicId)) {
+      setSelectedTopicId('all');
+    }
+  }, [followedTopics, selectedTopicId]);
+
+  // Fetch news using progressive updates
+  const { refetch, isLoading, isError } = useQuery(
+    'news',
     () => {
       setIsProgressiveLoading(true);
       return fetchNewsProgressively((progressArticles, isComplete) => {
-        console.log(`Progressive update: ${progressArticles.length} articles, complete: ${isComplete}`);
-        
-        // Update articles as they come in
         setArticles(progressArticles);
-        setFilteredArticles(progressArticles);
-        
-        // Update progressive loading state
         if (isComplete) {
           setIsProgressiveLoading(false);
         }
       });
     },
     {
-      staleTime: 2 * 60 * 1000, // 2 minutes - data stays fresh
-      cacheTime: 5 * 60 * 1000, // 5 minutes - cache duration
-      refetchOnWindowFocus: false, // Don't refetch when window gets focus
+      staleTime: 2 * 60 * 1000,
+      cacheTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
       onSuccess: (data) => {
         setArticles(data);
-        setFilteredArticles(data);
         setIsProgressiveLoading(false);
       },
       onError: () => {
@@ -85,9 +144,6 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     setIsProgressiveLoading(true);
     try {
       await refetch();
-      if (currentKeyword) {
-        searchArticles(currentKeyword);
-      }
     } finally {
       setIsProgressiveLoading(false);
     }
@@ -95,17 +151,6 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
 
   const searchArticles = (keyword: string) => {
     setCurrentKeyword(keyword);
-    if (!keyword.trim()) {
-      setFilteredArticles(articles);
-      return;
-    }
-    const lowerKeyword = keyword.toLowerCase();
-    const filtered = articles.filter(
-      article => 
-        article.title.toLowerCase().includes(lowerKeyword) || 
-        (article.content && article.content.toLowerCase().includes(lowerKeyword))
-    );
-    setFilteredArticles(filtered);
   };
 
   const saveArticle = (article: Article) => {
@@ -121,6 +166,16 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     setSavedArticles(prev => prev.filter(a => a.id !== articleId));
   };
 
+  const toggleFollowTopic = (topicId: string) => {
+    setFollowedTopics(prev => {
+      if (prev.includes(topicId)) {
+        if (prev.length <= 1) return prev; // Keep at least one followed topic
+        return prev.filter(id => id !== topicId);
+      }
+      return [...prev, topicId];
+    });
+  };
+
   return (
     <NewsContext.Provider value={{
       articles,
@@ -133,9 +188,13 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       saveArticle,
       removeFromSaved,
       currentKeyword,
-      isProgressiveLoading, // New value available to components
+      isProgressiveLoading,
       isSearchOpen,
-      setIsSearchOpen
+      setIsSearchOpen,
+      followedTopics,
+      toggleFollowTopic,
+      selectedTopicId,
+      setSelectedTopicId
     }}>
       {children}
     </NewsContext.Provider>
