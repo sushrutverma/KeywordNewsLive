@@ -92,10 +92,7 @@ const HomePage = () => {
     </div>
   );
 
-  const activeTabs = [
-    { id: 'all', name: 'All Feed' },
-    ...topics.filter(topic => followedTopics.includes(topic.id))
-  ];
+  const activeTabs = topics.filter(topic => followedTopics.includes(topic.id));
 
   return (
     <div className="flex-1 pb-16 min-h-0">

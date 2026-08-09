@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import { fetchNewsProgressively } from '../services/newsService';
+import { fetchNewsProgressively, interleaveArticles } from '../services/newsService';
 import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 
@@ -62,7 +62,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       'sports-auto'
     ];
   });
-  const [selectedTopicId, setSelectedTopicId] = useState<string>('all');
+  const [selectedTopicId, setSelectedTopicId] = useState<string>('daily-news');
 
   // Fast mapping from source name to its topic category
   const sourceToTopicMap = useMemo(() => {
@@ -103,7 +103,11 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       console.log(`[NewsContext] filtered by keyword - remaining: ${result.length}`);
     }
 
-    setFilteredArticles(result);
+    // Apply the 70/30 regional mix and round-robin source interleaving reactively on the final list
+    const interleavedResult = interleaveArticles(result);
+    console.log(`[NewsContext] final interleaved size: ${interleavedResult.length}`);
+
+    setFilteredArticles(interleavedResult);
   }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap]);
 
   // Adjust active topic if the user unfollows their currently selected topic

@@ -211,7 +211,7 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
   }
 };
 
-// Interleaves articles from different sources in a round-robin style to ensure source diversity
+// Interleaves articles from different sources in a round-robin style to ensure source diversity and prioritizes rich content
 export const interleaveBySource = (articles: Article[]): Article[] => {
   if (articles.length === 0) return articles;
 
@@ -224,7 +224,20 @@ export const interleaveBySource = (articles: Article[]): Article[] => {
     groups[art.source].push(art);
   });
 
+  // Map each source name to its richContent setting
+  const sourceToIsRichMap: Record<string, boolean> = {};
+  news_sources.forEach(src => {
+    sourceToIsRichMap[src.name] = src.richContent;
+  });
+
   const sources = Object.keys(groups);
+  // Sort sources so rich content publications are checked first in the round-robin loop
+  sources.sort((a, b) => {
+    const isRichA = sourceToIsRichMap[a] ? 1 : 0;
+    const isRichB = sourceToIsRichMap[b] ? 1 : 0;
+    return isRichB - isRichA; // Rich content sources first
+  });
+
   const result: Article[] = [];
   let added = true;
   let indexMap: Record<string, number> = {};
