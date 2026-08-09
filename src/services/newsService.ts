@@ -182,6 +182,43 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
   }
 };
 
+// Interleaves articles to enforce 70% Indian / 30% World mix
+export const interleaveArticles = (articles: Article[]): Article[] => {
+  const sourceToIsIndianMap: Record<string, boolean> = {};
+  news_sources.forEach(src => {
+    sourceToIsIndianMap[src.name] = src.isIndian;
+  });
+
+  const indianArticles = articles.filter(art => sourceToIsIndianMap[art.source] === true);
+  const worldArticles = articles.filter(art => sourceToIsIndianMap[art.source] === false);
+
+  if (indianArticles.length === 0 || worldArticles.length === 0) {
+    return articles;
+  }
+
+  const result: Article[] = [];
+  let indIdx = 0;
+  let worldIdx = 0;
+
+  while (indIdx < indianArticles.length || worldIdx < worldArticles.length) {
+    let indAdded = 0;
+    while (indAdded < 7 && indIdx < indianArticles.length) {
+      result.push(indianArticles[indIdx]);
+      indIdx++;
+      indAdded++;
+    }
+
+    let worldAdded = 0;
+    while (worldAdded < 3 && worldIdx < worldArticles.length) {
+      result.push(worldArticles[worldIdx]);
+      worldIdx++;
+      worldAdded++;
+    }
+  }
+
+  return result;
+};
+
 // Optimized main fetch function
 export const fetchNewsFromAllSources = async (): Promise<Article[]> => {
   console.log('🚀 Starting news fetch...');
@@ -238,20 +275,22 @@ export const fetchNewsFromAllSources = async (): Promise<Article[]> => {
         return 0;
       }
     });
+
+    const interleaved = interleaveArticles(allArticles);
     
-    console.log(`🎉 Fetch complete: ${allArticles.length} total articles`);
+    console.log(`🎉 Fetch complete: ${interleaved.length} total articles (interleaved)`);
     
     // Cache results
-    if (allArticles.length > 0) {
+    if (interleaved.length > 0) {
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(allArticles));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(interleaved));
         localStorage.setItem(CACHE_TIMESTAMP_KEY, now.toString());
       } catch (error) {
         console.warn('Failed to cache results:', error);
       }
     }
     
-    return allArticles;
+    return interleaved;
     
   } catch (error) {
     console.error('❌ Fatal error during fetch:', error);
@@ -320,9 +359,10 @@ export const fetchNewsProgressively = async (
       }
     });
     
-    allArticles = priorityArticles;
-    console.log(`📦 Priority sources loaded: ${priorityArticles.length} articles`);
-    onProgress?.(priorityArticles, false);
+    const interleavedPriority = interleaveArticles(priorityArticles);
+    allArticles = interleavedPriority;
+    console.log(`📦 Priority sources loaded: ${interleavedPriority.length} articles`);
+    onProgress?.(interleavedPriority, false);
     
     // Fetch remaining sources
     if (remainingSources.length > 0) {
@@ -334,17 +374,20 @@ export const fetchNewsProgressively = async (
       const remainingArticles = remainingResults.flat();
       
       // Combine and sort all articles
-      allArticles = [...priorityArticles, ...remainingArticles];
-      allArticles.sort((a, b) => {
+      const combined = [...priorityArticles, ...remainingArticles];
+      combined.sort((a, b) => {
         try {
           return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
         } catch {
           return 0;
         }
       });
+
+      const interleavedAll = interleaveArticles(combined);
+      allArticles = interleavedAll;
       
-      console.log(`🎉 All sources loaded: ${allArticles.length} total articles`);
-      onProgress?.(allArticles, true);
+      console.log(`🎉 All sources loaded: ${interleavedAll.length} total articles (interleaved)`);
+      onProgress?.(interleavedAll, true);
     }
     
     // Cache results
@@ -361,8 +404,9 @@ export const fetchNewsProgressively = async (
     
   } catch (error) {
     console.error('❌ Error during progressive fetch:', error);
-    onProgress?.(allArticles, true);
-    return allArticles;
+    const interleavedFallback = interleaveArticles(allArticles);
+    onProgress?.(interleavedFallback, true);
+    return interleavedFallback;
   }
 };
 
