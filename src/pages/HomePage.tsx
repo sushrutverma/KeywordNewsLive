@@ -150,10 +150,6 @@ const HomePage = () => {
       </motion.div>
       
       {isMobile ? (
-        <div className="w-full">
-          <ContentSection />
-        </div>
-      ) : (
         <ReactPullToRefresh
           onRefresh={handleRefresh}
           icon={
@@ -176,6 +172,10 @@ const HomePage = () => {
         >
           <ContentSection />
         </ReactPullToRefresh>
+      ) : (
+        <div className="w-full">
+          <ContentSection />
+        </div>
       )}
     </div>
   );
