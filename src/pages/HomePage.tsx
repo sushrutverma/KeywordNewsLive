@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import ReactPullToRefresh from 'react-pull-to-refresh';
 import { useNews } from '../contexts/NewsContext';
 import { topics } from '../services/newsSources';
 
@@ -25,14 +24,6 @@ const HomePage = () => {
   useEffect(() => {
     refreshNews();
   }, []);
-  
-  const handleRefresh = async () => {
-    await refreshNews();
-    return Promise.resolve();
-  };
-
-  // Check if device is mobile for conditional pull-to-refresh
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const ContentSection = () => (
     <div className="space-y-6">
@@ -151,34 +142,9 @@ const HomePage = () => {
         )}
       </motion.div>
       
-      {isMobile ? (
-        <ReactPullToRefresh
-          onRefresh={handleRefresh}
-          icon={
-            <div className="flex justify-center items-center py-2">
-              <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />
-              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                Pull to refresh...
-              </span>
-            </div>
-          }
-          loading={
-            <div className="flex justify-center items-center py-2">
-              <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />
-              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                Refreshing...
-              </span>
-            </div>
-          }
-          className="ptr-container"
-        >
-          <ContentSection />
-        </ReactPullToRefresh>
-      ) : (
-        <div className="w-full">
-          <ContentSection />
-        </div>
-      )}
+      <div className="w-full">
+        <ContentSection />
+      </div>
     </div>
   );
 };
