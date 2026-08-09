@@ -19,6 +19,8 @@ const HomePage = () => {
     selectedTopicId,
     setSelectedTopicId
   } = useNews();
+
+  console.log(`[HomePage] render - filteredArticles size: ${filteredArticles.length}, isLoading: ${isLoading}, isError: ${isError}, selectedTopicId: ${selectedTopicId}`);
   
   useEffect(() => {
     refreshNews();
