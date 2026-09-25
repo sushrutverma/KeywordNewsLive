@@ -11,6 +11,7 @@ import SignupPage from './pages/SignupPage';
 import OnboardingPage from './pages/OnboardingPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import { MarketTicker } from './components/MarketTicker';
 import { SearchModal } from './components/SearchModal';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NewsProvider, useNews } from './contexts/NewsContext';
@@ -102,7 +103,8 @@ function AppContent() {
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col min-w-0 h-screen overflow-y-auto ${!hideLayout ? 'md:pl-[76px]' : ''}`}>
         {!hideLayout && (
-          <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-6">
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-4">
+            <MarketTicker />
             <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
           </div>
         )}
