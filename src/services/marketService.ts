@@ -64,12 +64,16 @@ export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
       const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.symbol)}?interval=1d&range=1d`;
       const proxyUrl = `${SUPABASE_URL}/functions/v1/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
       
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 6000);
+
       const res = await fetch(proxyUrl, {
         headers: {
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         },
-        signal: AbortSignal.timeout(6000)
+        signal: controller.signal
       });
+      clearTimeout(timer);
 
       if (!res.ok) return null;
       const json = await res.json();
