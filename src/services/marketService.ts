@@ -34,13 +34,26 @@ const formatNumber = (num: number, decimals = 2): string => {
   });
 };
 
+export const INITIAL_MARKET_DATA: MarketTickerItem[] = [
+  { symbol: '^BSESN', label: 'SENSEX', price: 73895.74, change: -932.46, changePercent: -1.25, isPositive: false, formattedPrice: '₹73,895.74', formattedChange: '-1.25%' },
+  { symbol: '^NSEI', label: 'NIFTY 50', price: 23140.50, change: -306.30, changePercent: -1.31, isPositive: false, formattedPrice: '₹23,140.50', formattedChange: '-1.31%' },
+  { symbol: 'INR=X', label: 'USD/INR', price: 95.80, change: -0.14, changePercent: -0.15, isPositive: false, formattedPrice: '₹95.80', formattedChange: '-0.15%' },
+  { symbol: 'BZ=F', label: 'BRENT CRUDE', price: 97.18, change: -3.04, changePercent: -3.03, isPositive: false, unit: '$/bbl', formattedPrice: '$97.18', formattedChange: '-3.03%' },
+  { symbol: 'GC=F', label: 'GOLD', price: 4329.40, change: 31.40, changePercent: 0.73, isPositive: true, unit: '$/oz', formattedPrice: '$4,329.40', formattedChange: '+0.73%' },
+  { symbol: '^GSPC', label: 'S&P 500', price: 7735.66, change: 31.53, changePercent: 0.41, isPositive: true, formattedPrice: '7,735.66', formattedChange: '+0.41%' },
+  { symbol: 'BTC-USD', label: 'BITCOIN', price: 83919.30, change: -458.82, changePercent: -0.54, isPositive: false, formattedPrice: '$83,919.30', formattedChange: '-0.54%' }
+];
+
 export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
   // Check local cache first
   try {
     const cachedTime = localStorage.getItem(CACHE_TIMESTAMP_KEY);
     const cachedData = localStorage.getItem(CACHE_KEY);
     if (cachedTime && cachedData && (Date.now() - parseInt(cachedTime, 10) < CACHE_DURATION)) {
-      return JSON.parse(cachedData);
+      const parsed = JSON.parse(cachedData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch {
     // Ignore cache parse errors
@@ -101,7 +114,19 @@ export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
     } catch {
       // Ignore cache write error
     }
+    return items;
   }
 
-  return items;
+  // If live fetch was completely empty, return any existing cached items or fallback data
+  try {
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore
+  }
+
+  return INITIAL_MARKET_DATA;
 };

@@ -104,11 +104,15 @@ function AppContent() {
       <div className={`flex-1 flex flex-col min-w-0 h-screen overflow-y-auto ${!hideLayout ? 'md:pl-[76px]' : ''}`}>
         {!hideLayout && (
           <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-4">
-            <MarketTicker />
             <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
           </div>
         )}
-        <div className={`flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 ${!hideLayout ? 'pt-6 max-md:pt-24 pb-24 md:pb-12' : 'flex items-center justify-center'}`}>
+        <div className={`flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 ${!hideLayout ? 'pt-1 max-md:pt-24 pb-24 md:pb-12' : 'flex items-center justify-center'}`}>
+          {!hideLayout && (
+            <div className="mb-4">
+              <MarketTicker />
+            </div>
+          )}
           <Routes>
             <Route path="/login" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <LoginPage />} />
             <Route path="/signup" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <SignupPage />} />

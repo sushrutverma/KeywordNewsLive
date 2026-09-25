@@ -1,10 +1,9 @@
 import { FC, useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
-import { fetchMarketData, MarketTickerItem } from '../services/marketService';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import { fetchMarketData, MarketTickerItem, INITIAL_MARKET_DATA } from '../services/marketService';
 
 export const MarketTicker: FC = () => {
-  const [data, setData] = useState<MarketTickerItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<MarketTickerItem[]>(INITIAL_MARKET_DATA);
   const [isHovered, setIsHovered] = useState(false);
 
   const loadMarket = async () => {
@@ -15,8 +14,6 @@ export const MarketTicker: FC = () => {
       }
     } catch {
       // Keep existing data on error
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -27,12 +24,9 @@ export const MarketTicker: FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (data.length === 0 && !isLoading) {
-    return null; // Don't render empty container if all requests failed
-  }
-
+  const currentItems = data.length > 0 ? data : INITIAL_MARKET_DATA;
   // Duplicate the items array for a seamless infinite scroll loop
-  const tickerItems = [...data, ...data];
+  const tickerItems = [...currentItems, ...currentItems];
 
   return (
     <div 
@@ -53,24 +47,16 @@ export const MarketTicker: FC = () => {
 
         {/* Scrolling Ticker Track */}
         <div className="flex-1 overflow-hidden relative">
-          {isLoading && data.length === 0 ? (
-            <div className="flex items-center gap-6 px-4 py-2 text-gray-400 dark:text-zinc-500 animate-pulse">
-              <span className="inline-flex items-center gap-1.5">
-                <RefreshCw size={11} className="animate-spin" />
-                Connecting to global market feeds...
-              </span>
-            </div>
-          ) : (
-            <div 
-              className={`flex items-center gap-8 py-2 whitespace-nowrap will-change-transform ${
-                isHovered ? 'animate-none' : 'animate-ticker'
-              }`}
-              style={{
-                animationDuration: '32s',
-                animationTimingFunction: 'linear',
-                animationIterationCount: 'infinite'
-              }}
-            >
+          <div 
+            className={`flex items-center gap-8 py-2 whitespace-nowrap will-change-transform ${
+              isHovered ? 'animate-none' : 'animate-ticker'
+            }`}
+            style={{
+              animationDuration: '32s',
+              animationTimingFunction: 'linear',
+              animationIterationCount: 'infinite'
+            }}
+          >
               {tickerItems.map((item, idx) => (
                 <div key={`${item.symbol}-${idx}`} className="inline-flex items-center gap-2">
                   <span className="font-semibold text-gray-800 dark:text-zinc-200 tracking-tight">
@@ -93,7 +79,6 @@ export const MarketTicker: FC = () => {
                 </div>
               ))}
             </div>
-          )}
         </div>
       </div>
     </div>
