@@ -147,6 +147,20 @@ const sanitizeXml = (xml: string): string => {
     .replace(/&amp;amp;/g, '&amp;');
 };
 
+// Generates a stable deterministic ID from article link or source + title
+export const generateArticleId = (link: string, title: string, source: string): string => {
+  const cleanLink = (link || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const cleanTitle = (title || 'untitled').trim().toLowerCase().slice(0, 80);
+  const rawKey = cleanLink || `${source}:${cleanTitle}`;
+  
+  let hash = 0;
+  for (let i = 0; i < rawKey.length; i++) {
+    hash = ((hash << 5) - hash) + rawKey.charCodeAt(i);
+    hash |= 0;
+  }
+  return `art-${Math.abs(hash).toString(36)}`;
+};
+
 // Fetch RSS feed via Supabase Edge Function proxy
 const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Article[]> => {
   try {
@@ -188,11 +202,13 @@ const fetchRssFeed = async (sourceUrl: string, sourceName: string): Promise<Arti
       }
 
       const content = item.content || item.contentSnippet || item.description || '';
+      const title = item.title || 'Untitled';
+      const link = item.link || '';
 
       return {
-        id: uuidv4(),
-        title: item.title || 'Untitled',
-        link: item.link || '',
+        id: generateArticleId(link, title, sourceName),
+        title: title,
+        link: link,
         pubDate: item.pubDate || new Date().toISOString(),
         content: content,
         image: imageUrl,
@@ -544,8 +560,8 @@ export const fetchNewsProgressively = async (
 
   const allArticlesMap = new Map<string, Article>();
 
-  // Fetch in concurrent batches of 6 sources so the UI receives articles across topics immediately
-  const batchSize = 6;
+  // Fetch in concurrent batches of 12 sources so the UI receives articles across topics in smooth stages
+  const batchSize = 12;
   const totalBatches = Math.ceil(news_sources.length / batchSize);
 
   try {

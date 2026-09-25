@@ -153,19 +153,17 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
 
   return (
     <motion.div
-      layoutId={`card-${article.id}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -6, scale: 1.015 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.25 }}
       className={`article-card glass-card rounded-xl overflow-hidden mb-6 relative card-glow-hover cursor-pointer ${getCategoryClass()}`}
       style={{ touchAction: 'pan-y' }}
     >
       <Link to={`/article/${article.id}`} className="block">
         {article.image && (
           <div className={`w-full overflow-hidden ${isFeatured ? 'h-64 md:h-72' : 'h-48'}`}>
-            <motion.img
-              layoutId={`image-${article.id}`}
+            <img
               src={article.image}
               alt={article.title || 'Article image'}
               className="w-full h-full object-cover"
@@ -190,14 +188,13 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
             )}
           </div>
 
-          <motion.h2
-            layoutId={`title-${article.id}`}
+          <h2
             className={`font-playfair font-bold mb-3 text-primary dark:text-primary-dark hover:underline ${
               isFeatured ? 'text-2xl md:text-3xl' : 'text-xl'
             }`}
           >
             {highlightKeyword(article.title || 'Untitled', keyword)}
-          </motion.h2>
+          </h2>
 
           {formattedContent && (
             <p className="font-source-serif text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
