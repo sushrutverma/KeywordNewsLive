@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import { fetchNewsProgressively, interleaveArticles } from '../services/newsService';
+import { fetchNewsProgressively, interleaveArticles, clusterArticles } from '../services/newsService';
 import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 
@@ -103,9 +103,12 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       console.log(`[NewsContext] filtered by keyword - remaining: ${result.length}`);
     }
 
-    // Apply the 70/30 regional mix and round-robin source interleaving reactively on the final list
-    const interleavedResult = interleaveArticles(result);
-    console.log(`[NewsContext] final interleaved size: ${interleavedResult.length}`);
+    // 1. Cluster identical stories across publishers first (promoting longest content and unifying multi-source perspectives)
+    const clusteredResult = clusterArticles(result);
+
+    // 2. Apply the 70/30 regional mix and round-robin source interleaving (which ranks by content length & score)
+    const interleavedResult = interleaveArticles(clusteredResult);
+    console.log(`[NewsContext] final clustered & interleaved size: ${interleavedResult.length} (from original ${result.length})`);
 
     setFilteredArticles(interleavedResult);
   }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap]);

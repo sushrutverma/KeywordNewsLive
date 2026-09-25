@@ -2,17 +2,53 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { ArrowLeft, Share2, Bookmark, ExternalLink, Sparkles, AlertCircle, Clock, Eye } from 'lucide-react';
+import { ArrowLeft, Share2, Bookmark, ExternalLink, Sparkles, AlertCircle, Clock, Eye, X } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { Article } from '../types';
 import { aiService } from '../services/aiService';
+import { scraperService, sanitizeArticleHtml } from '../services/scraperService';
 import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
+
+const isSafeUrl = (url?: string): boolean => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
 
 const ArticlePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { articles, savedArticles, saveArticle, removeFromSaved } = useNews();
   const [article, setArticle] = useState<Article | null>(null);
+  
+  // Full text scraper state
+  const [fullTextHtml, setFullTextHtml] = useState<string | null>(null);
+  const [isScraping, setIsScraping] = useState(false);
+  const [scrapingError, setScrapingError] = useState('');
+
+  // Tooltip explainer state
+  const [tooltipState, setTooltipState] = useState<{
+    isOpen: boolean;
+    text: string;
+    explanation: string;
+    isLoading: boolean;
+    error: string;
+    x: number;
+    y: number;
+  }>({
+    isOpen: false,
+    text: '',
+    explanation: '',
+    isLoading: false,
+    error: '',
+    x: 0,
+    y: 0
+  });
+
   const [summary, setSummary] = useState<string>('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string>('');
@@ -41,16 +77,52 @@ const ArticlePage = () => {
     }
   }, [id, articles, navigate, savedArticles]);
 
+  // Load full article text via scraperService
+  useEffect(() => {
+    const loadFullArticle = async () => {
+      if (article?.link) {
+        setIsScraping(true);
+        setScrapingError('');
+        setFullTextHtml(null);
+        try {
+          const scraped = await scraperService.scrapeFullText(article.link);
+          setFullTextHtml(scraped.content);
+          
+          // Re-calculate reading time based on full text
+          const wordCount = scraped.textContent.split(/\s+/).length || 0;
+          setReadingTime(Math.ceil(wordCount / 200));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : 'Failed to fetch the full article. Showing preview instead.';
+          console.warn('Scraping full text failed:', error);
+          setScrapingError(message);
+        } finally {
+          setIsScraping(false);
+        }
+      }
+    };
+
+    if (article) {
+      loadFullArticle();
+    }
+  }, [article]);
+
+  // Generate AI summary based on scraped full text (or fallback snippet)
   useEffect(() => {
     const generateSummary = async () => {
-      if (article?.content) {
+      // Use clean text content if available, fallback to RSS snippet content or title
+      const textToSummarize = fullTextHtml
+        ? fullTextHtml.replace(/<[^>]*>/g, '') // Strip HTML tags
+        : (article?.content || article?.title);
+
+      if (textToSummarize) {
         setIsSummarizing(true);
         setSummaryError('');
         try {
-          const result = await aiService.summarize(article.content);
+          const result = await aiService.summarize(textToSummarize);
           setSummary(result.summary);
         } catch (error) {
-          setSummaryError('Failed to generate summary. Please try again later.');
+          const message = error instanceof Error ? error.message : 'Failed to generate summary. Please try again later.';
+          setSummaryError(message);
           console.error('Summary generation error:', error);
         } finally {
           setIsSummarizing(false);
@@ -58,8 +130,90 @@ const ArticlePage = () => {
       }
     };
 
-    generateSummary();
-  }, [article]);
+    if (article && !isScraping) {
+      generateSummary();
+    }
+  }, [article, fullTextHtml, isScraping]);
+
+  // Concept Explainer text selection handler
+  const handleTextSelection = async () => {
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const selectedText = selection.toString().trim();
+    
+    // We only explain terms that are 2-6 words or up to 60 characters long
+    if (selectedText.length > 2 && selectedText.length < 60 && !selectedText.includes('\n')) {
+      try {
+        if (selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        // Calculate tooltip position (centered above selection, using viewport fixed coordinates)
+        const x = rect.left + rect.width / 2;
+        const y = rect.top;
+
+        setTooltipState({
+          isOpen: true,
+          text: selectedText,
+          explanation: '',
+          isLoading: true,
+          error: '',
+          x,
+          y
+        });
+
+        const articleContext = article 
+          ? `Title: "${article.title}" Description: "${article.content?.substring(0, 200)}"` 
+          : '';
+        const result = await aiService.explainConcept(selectedText, articleContext);
+        
+        setTooltipState(prev => {
+          if (prev.text !== selectedText) return prev;
+          return {
+            ...prev,
+            isLoading: false,
+            explanation: result.explanation || 'No definition found.'
+          };
+        });
+      } catch (err: unknown) {
+        console.error('Failed to get concept definition:', err);
+        setTooltipState(prev => {
+          if (prev.text !== selectedText) return prev;
+          return {
+            ...prev,
+            isLoading: false,
+            error: 'Failed to explain concept. Please try again.'
+          };
+        });
+      }
+    }
+  };
+
+  const closeTooltip = () => {
+    setTooltipState(prev => ({ ...prev, isOpen: false }));
+    window.getSelection()?.removeAllRanges();
+  };
+
+  // Close tooltip on click away or scroll (using capture phase for scrolling in scrollable container divs)
+  useEffect(() => {
+    const handleScrollOrClick = (e: MouseEvent | Event) => {
+      if (tooltipState.isOpen) {
+        const target = e.target as HTMLElement;
+        if (!target.closest('.ai-tooltip')) {
+          closeTooltip();
+        }
+      }
+    };
+
+    window.addEventListener('mousedown', handleScrollOrClick);
+    window.addEventListener('scroll', handleScrollOrClick, true);
+
+    return () => {
+      window.removeEventListener('mousedown', handleScrollOrClick);
+      window.removeEventListener('scroll', handleScrollOrClick, true);
+    };
+  }, [tooltipState.isOpen]);
 
   const formatContent = (content: string) => {
     // Remove HTML tags
@@ -235,8 +389,47 @@ const ArticlePage = () => {
 
                 {/* Article Content */}
                 <div className="p-6 md:p-8 flex-1">
-                  <div className="prose prose-lg dark:prose-invert max-w-none">
-                    {article.content ? (
+                  <div 
+                    className="prose prose-lg dark:prose-invert max-w-none select-text"
+                    onMouseUp={handleTextSelection}
+                  >
+                    {isScraping ? (
+                      <div className="space-y-4 animate-pulse">
+                        <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-5/6 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-2/3 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-11/12 animate-pulse"></div>
+                        <div className="pt-4 space-y-4">
+                          <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-4/5 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-3/4 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-5/6 animate-pulse"></div>
+                        </div>
+                      </div>
+                    ) : scrapingError ? (
+                      <div className="space-y-6">
+                        <div className="flex items-start p-3.5 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs rounded-xl border border-amber-550/20">
+                          <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+                          <span>We couldn't load the full text. Displaying the article preview instead.</span>
+                        </div>
+                        {article.content ? (
+                          <div className="font-source-serif text-gray-800 dark:text-gray-200 leading-relaxed text-lg whitespace-pre-wrap">
+                            {formatContent(article.content)}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12">
+                            <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <AlertCircle className="text-gray-400 dark:text-gray-500" size={24} />
+                            </div>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg">No content available for this article.</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : fullTextHtml ? (
+                      <div 
+                        className="reader-content font-source-serif text-gray-800 dark:text-gray-200 leading-relaxed text-lg"
+                        dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(fullTextHtml) }}
+                      />
+                    ) : article.content ? (
                       <div className="font-source-serif text-gray-800 dark:text-gray-200 leading-relaxed text-lg whitespace-pre-wrap">
                         {formatContent(article.content)}
                       </div>
@@ -257,17 +450,19 @@ const ArticlePage = () => {
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       Want to read the complete article with all details?
                     </div>
-                    <motion.a
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow shadow-indigo-500/10 font-medium"
-                    >
-                      Read Full Article
-                      <ExternalLink size={16} className="ml-2" />
-                    </motion.a>
+                    {isSafeUrl(article?.link) && (
+                      <motion.a
+                        href={article.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow shadow-indigo-500/10 font-medium"
+                      >
+                        Read Full Article
+                        <ExternalLink size={16} className="ml-2" />
+                      </motion.a>
+                    )}
                   </div>
                 </div>
 
@@ -372,6 +567,56 @@ const ArticlePage = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Floating AI Tooltip for Concept Explainer */}
+      {tooltipState.isOpen && (
+        <div 
+          className="ai-tooltip fixed z-50 p-4 w-72 backdrop-blur-md bg-white/95 dark:bg-zinc-950/95 border border-indigo-500/20 dark:border-indigo-400/25 rounded-2xl shadow-xl transition-all duration-300"
+          style={{ 
+            left: `${tooltipState.x}px`, 
+            top: `${tooltipState.y}px`, 
+            transform: 'translate(-50%, -105%)', // Position above the text
+          }}
+        >
+          {/* Tooltip caret (arrow at bottom center) */}
+          <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-zinc-950 border-r border-b border-indigo-500/20 dark:border-indigo-400/25 rotate-45" />
+
+          {/* Tooltip Content */}
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-indigo-650 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 mr-1 text-indigo-500 dark:text-indigo-450" />
+                AI Concept Explainer
+              </div>
+              <button 
+                onClick={closeTooltip}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-250 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="text-sm font-bold text-gray-900 dark:text-white mb-1.5 truncate">
+              "{tooltipState.text}"
+            </div>
+
+            {tooltipState.isLoading ? (
+              <div className="flex flex-col items-center justify-center py-4 space-y-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary dark:border-primary-dark"></div>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">Defining...</span>
+              </div>
+            ) : tooltipState.error ? (
+              <div className="text-xs text-rose-500 dark:text-rose-450 py-1">
+                {tooltipState.error}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-650 dark:text-zinc-300 leading-relaxed font-sans font-medium">
+                {tooltipState.explanation}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

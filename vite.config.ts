@@ -4,13 +4,11 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: true,
+    port: 5173,
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
-  },
-  resolve: {
-    alias: {
-      events: 'events/',
-      url: 'url/',
-    },
   },
 });

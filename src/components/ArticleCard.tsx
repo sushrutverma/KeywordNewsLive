@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, FC } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Bookmark, Share2, ExternalLink, Sparkles, X } from 'lucide-react';
+import { Bookmark, Share2, ExternalLink, Sparkles, X, Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import { Article } from '../types';
 import { useNews } from '../contexts/NewsContext';
 import { aiService } from '../services/aiService';
@@ -17,6 +17,7 @@ interface ArticleCardProps {
 const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => {
   const { savedArticles, saveArticle, removeFromSaved } = useNews();
   const [showSummary, setShowSummary] = useState(false);
+  const [showRelated, setShowRelated] = useState(false);
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +146,11 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
 
   const formattedContent = formatContent(article.content || '');
 
+  const relatedCount = article.relatedArticles?.length || 0;
+  const uniqueSources = article.relatedArticles && article.relatedArticles.length > 0
+    ? Array.from(new Set([article.source, ...article.relatedArticles.map((a) => a.source)]))
+    : [article.source];
+
   return (
     <motion.div
       layoutId={`card-${article.id}`}
@@ -172,10 +178,16 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
         )}
 
         <div className="p-6 pb-0">
-          <div className="flex items-center mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark">
               {article.source || 'Unknown'} • {formatDate(article.pubDate)}
             </span>
+            {relatedCount > 0 && (
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 shadow-xs">
+                <Layers size={12} className="mr-1.5 text-indigo-500" />
+                Covered by {uniqueSources.length} sources
+              </span>
+            )}
           </div>
 
           <motion.h2
@@ -195,40 +207,117 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
         </div>
       </Link>
 
-      <div className="p-6 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to={`/article/${article.id}`}
-              className="fab whitespace-nowrap px-4 py-2 rounded-full text-white text-sm font-medium flex items-center"
-            >
-              Read more <ExternalLink size={14} className="ml-2" />
-            </Link>
+      <div className="p-6 pt-3 border-t border-gray-200/50 dark:border-gray-700/50 flex flex-wrap justify-between items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`/article/${article.id}`}
+            className="fab whitespace-nowrap px-4 py-2 rounded-full text-white text-sm font-medium flex items-center"
+          >
+            Read more <ExternalLink size={14} className="ml-2" />
+          </Link>
 
+          <button
+            onClick={handleSummarize}
+            disabled={isLoading}
+            className="whitespace-nowrap px-4 py-2 rounded-full bg-accent/10 text-accent dark:bg-accent-dark/10 dark:text-accent-dark text-sm font-medium flex items-center disabled:opacity-50"
+          >
+            <Sparkles size={14} className="mr-2" />
+            {isLoading ? 'Loading...' : 'AI Summary'}
+          </button>
+
+          {relatedCount > 0 && (
             <button
-              onClick={handleSummarize}
-              disabled={isLoading}
-              className="whitespace-nowrap px-4 py-2 rounded-full bg-accent/10 text-accent dark:bg-accent-dark/10 dark:text-accent-dark text-sm font-medium flex items-center disabled:opacity-50"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowRelated(!showRelated);
+              }}
+              className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/70 transition-colors"
             >
-              <Sparkles size={14} className="mr-2" />
-              {isLoading ? 'Loading...' : 'AI Summary'}
+              <Layers size={13} className="text-indigo-600 dark:text-indigo-400" />
+              <span>{showRelated ? 'Hide' : 'Compare'} {relatedCount} other {relatedCount === 1 ? 'perspective' : 'perspectives'}</span>
+              {showRelated ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-          </div>
-
-          <div className="flex space-x-2">
-            <button onClick={handleShare} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-              <Share2 size={18} className="text-gray-600 dark:text-gray-400" />
-            </button>
-
-            <button
-              onClick={handleBookmarkToggle}
-              className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                isBookmarked ? 'text-accent dark:text-accent-dark' : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-            </button>
-          </div>
+          )}
         </div>
+
+        <div className="flex space-x-2">
+          <button onClick={handleShare} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" title="Share article">
+            <Share2 size={18} className="text-gray-600 dark:text-gray-400" />
+          </button>
+
+          <button
+            onClick={handleBookmarkToggle}
+            className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${
+              isBookmarked ? 'text-accent dark:text-accent-dark' : 'text-gray-600 dark:text-gray-400'
+            }`}
+            title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
+          >
+            <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showRelated && article.relatedArticles && article.relatedArticles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden border-t border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-950/20 px-6 py-4"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold tracking-wide uppercase text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                <Layers size={13} className="text-indigo-600 dark:text-indigo-400" />
+                Cross-Publisher Perspectives ({article.relatedArticles.length})
+              </span>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                Multi-source clustered coverage
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {article.relatedArticles.map((rel) => (
+                <div
+                  key={rel.id}
+                  className="p-3 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-gray-200/70 dark:border-gray-700/70 hover:border-indigo-300 dark:hover:border-indigo-700 transition flex items-start justify-between gap-3 shadow-xs"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                        {rel.source}
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                        {formatDate(rel.pubDate)}
+                      </span>
+                    </div>
+                    <Link
+                      to={`/article/${rel.id}`}
+                      className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 block"
+                    >
+                      {rel.title}
+                    </Link>
+                    {rel.content && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
+                        {formatContent(rel.content)}
+                      </p>
+                    )}
+                  </div>
+                  <Link
+                    to={`/article/${rel.id}`}
+                    title="Read article"
+                    className="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition shrink-0"
+                  >
+                    <ExternalLink size={14} />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <AnimatePresence>
         {showSummary && (

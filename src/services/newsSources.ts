@@ -74,8 +74,8 @@ export const news_sources: NewsSource[] = [
     richContent: true
   },
   {
-    name: "Dainik Bhaskar",
-    url: "https://www.bhaskar.com/rss-v1/category/1012.xml",
+    name: "Dainik Jagran",
+    url: "https://rss.jagran.com/rss/news/national.xml",
     category: "daily-news",
     isIndian: true,
     richContent: false
@@ -104,11 +104,11 @@ export const news_sources: NewsSource[] = [
 
   // 2. UPSC & Policy (Analytical & Policy updates)
   {
-    name: "Press Information Bureau (PIB)",
-    url: "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
+    name: "LiveMint",
+    url: "https://www.livemint.com/rss/news",
     category: "upsc-policy",
     isIndian: true,
-    richContent: false
+    richContent: true
   },
   {
     name: "PRS Legislative Research",

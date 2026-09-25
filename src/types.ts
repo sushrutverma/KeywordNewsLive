@@ -6,4 +6,5 @@ export interface Article {
   content: string;
   image?: string;
   source: string;
+  relatedArticles?: Article[];
 }
