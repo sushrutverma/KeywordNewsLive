@@ -1,5 +1,5 @@
-const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://jwksmchxpprxkpbsmhxo.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8-mwp-4C7u6ouu7KftHYuw_O72qOXVq';
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
 
 export interface MarketTickerItem {
   symbol: string;
