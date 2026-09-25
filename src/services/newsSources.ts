@@ -118,15 +118,8 @@ export const news_sources: NewsSource[] = [
     richContent: true
   },
   {
-    name: "IPRD Bihar",
-    url: "https://iprdbihar.blogspot.com/feeds/posts/default",
-    category: "upsc-policy",
-    isIndian: true,
-    richContent: false
-  },
-  {
     name: "Scroll.in",
-    url: "https://scroll.in/feed",
+    url: "https://feeds.feedburner.com/scrollin",
     category: "upsc-policy",
     isIndian: true,
     richContent: true
