@@ -165,22 +165,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         <div>
           {/* Logo Section */}
-          <Link to="/" className="flex items-center px-2 py-4 mb-8 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 flex items-center justify-center flex-shrink-0 shadow-inner p-2 border border-gray-200/50 dark:border-zinc-700/50">
-              <img
-                src="/keyword-icon.png"
-                alt="K"
-                className="h-6 w-auto object-contain dark:invert select-none"
-              />
-            </div>
-            <div className="ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
+          <Link to="/" className="flex flex-col px-1 py-3 mb-6 overflow-hidden group/logo">
+            <div className="flex items-center h-8">
               <img
                 src="/keyword-logo.png"
                 alt="Keyword"
-                className="h-6 w-auto object-contain dark:invert select-none"
+                className="h-[16px] group-hover:h-[26px] w-auto max-w-[42px] group-hover:max-w-none object-contain dark:invert select-none transition-all duration-300"
               />
-              <p className="text-[9px] text-gray-500 mt-0.5">Your Curated Feed</p>
             </div>
+            <p className="text-[9px] text-gray-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+              Your Curated Feed
+            </p>
           </Link>
 
           {/* Navigation Links */}
