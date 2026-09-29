@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, FC } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Bookmark, Share2, ExternalLink, Sparkles, X, Layers, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bookmark, Share2, ExternalLink, Sparkles, X, Layers, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { Article } from '../types';
 import { useNews } from '../contexts/NewsContext';
 import { aiService } from '../services/aiService';
@@ -13,6 +13,32 @@ interface ArticleCardProps {
   keyword?: string;
   isFeatured?: boolean;
 }
+
+const DETECTED_TICKERS: { match: RegExp; label: string }[] = [
+  { match: /\b(reliance|ril)\b/i, label: '$RELIANCE' },
+  { match: /\b(tcs|tata consultancy)\b/i, label: '$TCS' },
+  { match: /\b(hdfc|hdfc bank)\b/i, label: '$HDFCBANK' },
+  { match: /\b(infosys|infy)\b/i, label: '$INFY' },
+  { match: /\b(tata motors|tatamotors)\b/i, label: '$TATAMOTORS' },
+  { match: /\b(icici|icici bank)\b/i, label: '$ICICIBANK' },
+  { match: /\b(sbi|state bank of india)\b/i, label: '$SBIN' },
+  { match: /\b(adani)\b/i, label: '$ADANI' },
+  { match: /\b(nifty|nifty 50)\b/i, label: 'NIFTY 50' },
+  { match: /\b(sensex)\b/i, label: 'SENSEX' },
+  { match: /\b(rbi|reserve bank)\b/i, label: 'RBI POLICY' },
+  { match: /\b(ipo|listings)\b/i, label: 'IPO RADAR' },
+  { match: /\b(gold|bullion)\b/i, label: 'GOLD' },
+  { match: /\b(crude oil|brent)\b/i, label: 'CRUDE' },
+];
+
+const getDetectedTicker = (title: string): string | null => {
+  for (const item of DETECTED_TICKERS) {
+    if (item.match.test(title)) {
+      return item.label;
+    }
+  }
+  return null;
+};
 
 const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => {
   const { savedArticles, saveArticle, removeFromSaved } = useNews();
@@ -95,7 +121,11 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
 
   const handleBookmarkToggle = () => {
     if (!article?.id) return;
-    isBookmarked ? removeFromSaved(article.id) : saveArticle(article);
+    if (isBookmarked) {
+      removeFromSaved(article.id);
+    } else {
+      saveArticle(article);
+    }
   };
 
   const handleSummarize = async () => {
@@ -151,6 +181,8 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
     ? Array.from(new Set([article.source, ...article.relatedArticles.map((a) => a.source)]))
     : [article.source];
 
+  const detectedTicker = getDetectedTicker(article.title || '');
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -184,6 +216,12 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
               <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 shadow-xs">
                 <Layers size={12} className="mr-1.5 text-indigo-500" />
                 Covered by {uniqueSources.length} sources
+              </span>
+            )}
+            {detectedTicker && (
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-xs">
+                <TrendingUp size={11} className="mr-1 text-emerald-600 dark:text-emerald-400" />
+                {detectedTicker}
               </span>
             )}
           </div>

@@ -52,14 +52,28 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   // Topics and filtering state
   const [followedTopics, setFollowedTopics] = useState<string[]>(() => {
     const saved = localStorage.getItem('followedTopics');
-    return saved ? JSON.parse(saved) : [
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          if (!parsed.includes('finance-markets')) {
+            return [...parsed, 'finance-markets'];
+          }
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed to parse saved followedTopics:', err);
+      }
+    }
+    return [
       'daily-news',
       'upsc-policy',
       'tech-design',
       'mens-style',
       'running-fitness',
       'photography-video',
-      'sports-auto'
+      'sports-auto',
+      'finance-markets'
     ];
   });
   const [selectedTopicId, setSelectedTopicId] = useState<string>('daily-news');

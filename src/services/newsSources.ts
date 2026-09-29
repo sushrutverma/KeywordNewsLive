@@ -47,6 +47,11 @@ export const topics: Topic[] = [
     id: "sports-auto",
     name: "Sports & Auto",
     description: "Cricket coverage, automotive news, and motorcycle reviews."
+  },
+  {
+    id: "finance-markets",
+    name: "Finance & Markets",
+    description: "Stock markets, macroeconomic trends, corporate earnings, banking, and commodities."
   }
 ];
 
@@ -336,5 +341,49 @@ export const news_sources: NewsSource[] = [
     category: "sports-auto",
     isIndian: true,
     richContent: false
+  },
+
+  // 8. Finance & Markets
+  {
+    name: "The Economic Times",
+    url: "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+    category: "finance-markets",
+    isIndian: true,
+    richContent: true
+  },
+  {
+    name: "LiveMint Markets",
+    url: "https://www.livemint.com/rss/markets",
+    category: "finance-markets",
+    isIndian: true,
+    richContent: true
+  },
+  {
+    name: "Business Standard",
+    url: "https://www.business-standard.com/rss/markets-106.rss",
+    category: "finance-markets",
+    isIndian: true,
+    richContent: true
+  },
+  {
+    name: "The Hindu BusinessLine",
+    url: "https://www.thehindubusinessline.com/markets/feeder/default.rss",
+    category: "finance-markets",
+    isIndian: true,
+    richContent: true
+  },
+  {
+    name: "NDTV Profit",
+    url: "https://feeds.feedburner.com/ndtvprofit-latest",
+    category: "finance-markets",
+    isIndian: true,
+    richContent: false
+  },
+  {
+    name: "Yahoo Finance",
+    url: "https://finance.yahoo.com/news/rssindex",
+    category: "finance-markets",
+    isIndian: false,
+    richContent: true
   }
 ];

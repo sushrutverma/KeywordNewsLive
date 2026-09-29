@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNews } from '../contexts/NewsContext';
 import { topics } from '../services/newsSources';
 
 import ArticleCard from '../components/ArticleCard';
 import { ArticleCardSkeleton } from '../components/ArticleSkeleton';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import MarketPulseRibbon from '../components/MarketPulseRibbon';
+import { AlertCircle } from 'lucide-react';
 
 const HomePage = () => {
   const { 
@@ -53,6 +53,8 @@ const HomePage = () => {
           })}
         </div>
       </div>
+
+      {selectedTopicId === 'finance-markets' && <MarketPulseRibbon />}
 
       {currentKeyword && (
         <div className="mb-4">

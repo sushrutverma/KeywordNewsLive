@@ -29,6 +29,7 @@
   --color-sports: #06b6d4;
   --color-entertainment: #ec4899;
   --color-international: #8b5cf6;
+  --color-financemarkets: #10b981;
 }
 
 @keyframes ticker {
@@ -143,6 +144,11 @@ body {
 .card-international:hover {
   border-color: var(--color-international) !important;
   box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.12) !important;
+}
+
+.card-financemarkets:hover {
+  border-color: var(--color-financemarkets) !important;
+  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15) !important;
 }
 
 /* Floating action button */
