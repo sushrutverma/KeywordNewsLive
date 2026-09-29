@@ -3,6 +3,7 @@ import { useQuery } from 'react-query';
 import { fetchNewsProgressively, interleaveArticles, clusterArticles } from '../services/newsService';
 import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
+import { TrackedAsset, ASSET_CATALOG, DEFAULT_WATCHLIST_IDS, findMatchedAsset } from '../services/marketAssets';
 
 interface NewsContextType {
   articles: Article[];
@@ -11,6 +12,7 @@ interface NewsContextType {
   isError: boolean;
   refreshNews: () => Promise<void>;
   searchArticles: (keyword: string) => void;
+  searchNews: (keyword: string) => void;
   savedArticles: Article[];
   saveArticle: (article: Article) => void;
   removeFromSaved: (articleId: string) => void;
@@ -22,6 +24,11 @@ interface NewsContextType {
   toggleFollowTopic: (topicId: string) => void;
   selectedTopicId: string;
   setSelectedTopicId: (topicId: string) => void;
+  trackedAssets: TrackedAsset[];
+  toggleTrackAsset: (assetId: string) => void;
+  addCustomTrackedAsset: (name: string, keyword: string, category?: TrackedAsset['category']) => void;
+  removeTrackedAsset: (assetId: string) => void;
+  resetWatchlist: () => void;
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -78,6 +85,26 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   });
   const [selectedTopicId, setSelectedTopicId] = useState<string>('daily-news');
 
+  // Watchlist & Tracked Assets state
+  const [trackedAssets, setTrackedAssets] = useState<TrackedAsset[]>(() => {
+    const saved = localStorage.getItem('userWatchlist');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed to parse userWatchlist:', err);
+      }
+    }
+    return ASSET_CATALOG.filter(asset => DEFAULT_WATCHLIST_IDS.includes(asset.id));
+  });
+
+  useEffect(() => {
+    localStorage.setItem('userWatchlist', JSON.stringify(trackedAssets));
+  }, [trackedAssets]);
+
   // Fast mapping from source name to its topic category
   const sourceToTopicMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -124,8 +151,33 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     const interleavedResult = interleaveArticles(clusteredResult);
     console.log(`[NewsContext] final clustered & interleaved size: ${interleavedResult.length} (from original ${result.length})`);
 
-    setFilteredArticles(interleavedResult);
-  }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap]);
+    // 3. Prioritize articles matching user's tracked assets / watchlist to the very top!
+    if (trackedAssets.length > 0) {
+      const watchlistArticles: Article[] = [];
+      const regularArticles: Article[] = [];
+
+      interleavedResult.forEach((art) => {
+        const match = findMatchedAsset(art.title, art.content, trackedAssets);
+        if (match) {
+          watchlistArticles.push({
+            ...art,
+            isWatchlistMatch: true,
+            matchedAssetName: match.name
+          });
+        } else {
+          regularArticles.push({
+            ...art,
+            isWatchlistMatch: false
+          });
+        }
+      });
+
+      console.log(`[NewsContext] Prioritized ${watchlistArticles.length} watchlist stories to top of feed`);
+      setFilteredArticles([...watchlistArticles, ...regularArticles]);
+    } else {
+      setFilteredArticles(interleavedResult);
+    }
+  }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap, trackedAssets]);
 
   // Adjust active topic if the user unfollows their currently selected topic
   useEffect(() => {
@@ -177,6 +229,10 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     setCurrentKeyword(keyword);
   };
 
+  const searchNews = (keyword: string) => {
+    setCurrentKeyword(keyword);
+  };
+
   const saveArticle = (article: Article) => {
     setSavedArticles(prev => {
       if (prev.some(a => a.id === article.id)) {
@@ -200,6 +256,51 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     });
   };
 
+  const toggleTrackAsset = (assetId: string) => {
+    setTrackedAssets(prev => {
+      const exists = prev.some(a => a.id === assetId);
+      if (exists) {
+        if (prev.length <= 1) return prev; // Keep at least one tracked asset
+        return prev.filter(a => a.id !== assetId);
+      }
+      const foundInCatalog = ASSET_CATALOG.find(a => a.id === assetId);
+      if (foundInCatalog) {
+        return [...prev, foundInCatalog];
+      }
+      return prev;
+    });
+  };
+
+  const addCustomTrackedAsset = (name: string, keyword: string, category?: TrackedAsset['category']) => {
+    if (!name.trim()) return;
+    const cleanName = name.trim();
+    const cleanKw = keyword.trim() || cleanName;
+    const newAsset: TrackedAsset = {
+      id: `custom-${Date.now()}`,
+      symbol: cleanName.toUpperCase().replace(/\s+/g, '').slice(0, 10),
+      name: cleanName,
+      category: category || 'stock',
+      price: 'Tracked',
+      change: 'Live',
+      percentChange: 0,
+      region: 'GLOBAL',
+      keywords: [cleanName.toLowerCase(), cleanKw.toLowerCase()]
+    };
+    setTrackedAssets(prev => [newAsset, ...prev]);
+  };
+
+  const removeTrackedAsset = (assetId: string) => {
+    setTrackedAssets(prev => {
+      if (prev.length <= 1) return prev;
+      return prev.filter(a => a.id !== assetId);
+    });
+  };
+
+  const resetWatchlist = () => {
+    const defaults = ASSET_CATALOG.filter(asset => DEFAULT_WATCHLIST_IDS.includes(asset.id));
+    setTrackedAssets(defaults);
+  };
+
   return (
     <NewsContext.Provider value={{
       articles,
@@ -208,6 +309,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       isError,
       refreshNews,
       searchArticles,
+      searchNews,
       savedArticles,
       saveArticle,
       removeFromSaved,
@@ -218,7 +320,12 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       followedTopics,
       toggleFollowTopic,
       selectedTopicId,
-      setSelectedTopicId
+      setSelectedTopicId,
+      trackedAssets,
+      toggleTrackAsset,
+      addCustomTrackedAsset,
+      removeTrackedAsset,
+      resetWatchlist
     }}>
       {children}
     </NewsContext.Provider>

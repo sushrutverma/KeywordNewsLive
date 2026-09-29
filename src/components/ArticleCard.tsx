@@ -189,7 +189,11 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
       animate={{ opacity: 1 }}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.25 }}
-      className={`article-card glass-card rounded-xl overflow-hidden mb-6 relative card-glow-hover cursor-pointer ${getCategoryClass()}`}
+      className={`article-card glass-card rounded-xl overflow-hidden mb-6 relative card-glow-hover cursor-pointer ${getCategoryClass()} ${
+        article.isWatchlistMatch
+          ? 'border-l-4 border-l-amber-500 dark:border-l-amber-400 ring-1 ring-amber-500/25 bg-amber-500/[0.02]'
+          : ''
+      }`}
       style={{ touchAction: 'pan-y' }}
     >
       <Link to={`/article/${article.id}`} className="block">
@@ -209,6 +213,12 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
 
         <div className="p-6 pb-0">
           <div className="flex flex-wrap items-center gap-2 mb-3">
+            {article.isWatchlistMatch && (
+              <span className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-emerald-500/15 to-teal-500/15 text-amber-900 dark:text-amber-200 border border-amber-400/50 dark:border-amber-400/40 shadow-xs">
+                <Sparkles size={11} className="mr-1 text-amber-500 dark:text-amber-400" />
+                ⭐ Tracked {article.matchedAssetName ? `(${article.matchedAssetName})` : 'Asset'}
+              </span>
+            )}
             <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark">
               {article.source || 'Unknown'} • {formatDate(article.pubDate)}
             </span>

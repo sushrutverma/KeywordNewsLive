@@ -7,4 +7,6 @@ export interface Article {
   image?: string;
   source: string;
   relatedArticles?: Article[];
+  isWatchlistMatch?: boolean;
+  matchedAssetName?: string;
 }
