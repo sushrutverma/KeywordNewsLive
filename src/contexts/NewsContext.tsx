@@ -152,7 +152,8 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     console.log(`[NewsContext] final clustered & interleaved size: ${interleavedResult.length} (from original ${result.length})`);
 
     // 3. Prioritize articles matching user's tracked assets / watchlist to the very top!
-    if (trackedAssets.length > 0) {
+    // Smart ranking strictly applies ONLY when viewing the Finance & Markets section.
+    if (selectedTopicId === 'finance-markets' && trackedAssets.length > 0) {
       const watchlistArticles: Article[] = [];
       const regularArticles: Article[] = [];
 
@@ -172,10 +173,13 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         }
       });
 
-      console.log(`[NewsContext] Prioritized ${watchlistArticles.length} watchlist stories to top of feed`);
+      console.log(`[NewsContext] Prioritized ${watchlistArticles.length} watchlist stories to top of finance feed`);
       setFilteredArticles([...watchlistArticles, ...regularArticles]);
     } else {
-      setFilteredArticles(interleavedResult);
+      // In all other sections (Daily News, UPSC, Tech, Sports, etc.), normal interleaving without finance prioritization
+      setFilteredArticles(
+        interleavedResult.map(art => ({ ...art, isWatchlistMatch: false }))
+      );
     }
   }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap, trackedAssets]);
 
