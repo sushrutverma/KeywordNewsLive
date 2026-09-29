@@ -280,6 +280,204 @@ export const ASSET_CATALOG: TrackedAsset[] = [
     region: 'IN',
     keywords: ['titan', 'tanishq', 'fastrack']
   },
+  {
+    id: 'tata-steel',
+    symbol: 'TATASTEEL.NS',
+    name: 'Tata Steel',
+    category: 'stock',
+    price: '₹162.40',
+    change: '+3.10',
+    percentChange: 1.95,
+    region: 'IN',
+    keywords: ['tata steel', 'tatasteel', 'steel industry']
+  },
+  {
+    id: 'bajaj-finance',
+    symbol: 'BAJFINANCE.NS',
+    name: 'Bajaj Finance',
+    category: 'stock',
+    price: '₹7,420.00',
+    change: '+85.00',
+    percentChange: 1.16,
+    region: 'IN',
+    keywords: ['bajaj finance', 'bajaj finserv']
+  },
+  {
+    id: 'hcl-tech',
+    symbol: 'HCLTECH.NS',
+    name: 'HCL Technologies',
+    category: 'stock',
+    price: '₹1,780.50',
+    change: '+14.20',
+    percentChange: 0.80,
+    region: 'IN',
+    keywords: ['hcl tech', 'hcl technologies', 'hcl']
+  },
+  {
+    id: 'kotak-bank',
+    symbol: 'KOTAKBANK.NS',
+    name: 'Kotak Mahindra Bank',
+    category: 'stock',
+    price: '₹1,840.10',
+    change: '+9.50',
+    percentChange: 0.52,
+    region: 'IN',
+    keywords: ['kotak', 'kotak bank', 'uday kotak']
+  },
+  {
+    id: 'axis-bank',
+    symbol: 'AXISBANK.NS',
+    name: 'Axis Bank',
+    category: 'stock',
+    price: '₹1,240.00',
+    change: '+12.50',
+    percentChange: 1.02,
+    region: 'IN',
+    keywords: ['axis bank', 'axis']
+  },
+  {
+    id: 'sun-pharma',
+    symbol: 'SUNPHARMA.NS',
+    name: 'Sun Pharma',
+    category: 'stock',
+    price: '₹1,910.00',
+    change: '+18.00',
+    percentChange: 0.95,
+    region: 'IN',
+    keywords: ['sun pharma', 'dilip shanghvi']
+  },
+  {
+    id: 'mahindra',
+    symbol: 'M&M.NS',
+    name: 'Mahindra & Mahindra',
+    category: 'stock',
+    price: '₹3,140.00',
+    change: '+45.00',
+    percentChange: 1.45,
+    region: 'IN',
+    keywords: ['mahindra', 'm&m', 'anand mahindra']
+  },
+  {
+    id: 'ntpc',
+    symbol: 'NTPC.NS',
+    name: 'NTPC Ltd',
+    category: 'stock',
+    price: '₹435.20',
+    change: '+6.10',
+    percentChange: 1.42,
+    region: 'IN',
+    keywords: ['ntpc', 'power sector']
+  },
+  {
+    id: 'ongc',
+    symbol: 'ONGC.NS',
+    name: 'ONGC',
+    category: 'stock',
+    price: '₹295.40',
+    change: '+2.80',
+    percentChange: 0.96,
+    region: 'IN',
+    keywords: ['ongc', 'oil and natural gas']
+  },
+  {
+    id: 'coal-india',
+    symbol: 'COALINDIA.NS',
+    name: 'Coal India',
+    category: 'stock',
+    price: '₹510.60',
+    change: '+5.40',
+    percentChange: 1.07,
+    region: 'IN',
+    keywords: ['coal india']
+  },
+  {
+    id: 'trent',
+    symbol: 'TRENT.NS',
+    name: 'Trent (Westside / Zudio)',
+    category: 'stock',
+    price: '₹7,650.00',
+    change: '+190.00',
+    percentChange: 2.55,
+    region: 'IN',
+    keywords: ['trent', 'zudio', 'westside']
+  },
+  {
+    id: 'bel',
+    symbol: 'BEL.NS',
+    name: 'Bharat Electronics (BEL)',
+    category: 'stock',
+    price: '₹305.50',
+    change: '+6.80',
+    percentChange: 2.28,
+    region: 'IN',
+    keywords: ['bel', 'bharat electronics', 'defense stocks']
+  },
+  {
+    id: 'hal',
+    symbol: 'HAL.NS',
+    name: 'Hindustan Aeronautics (HAL)',
+    category: 'stock',
+    price: '₹4,520.00',
+    change: '+95.00',
+    percentChange: 2.15,
+    region: 'IN',
+    keywords: ['hal', 'hindustan aeronautics', 'defense']
+  },
+  {
+    id: 'suzlon',
+    symbol: 'SUZLON.NS',
+    name: 'Suzlon Energy',
+    category: 'stock',
+    price: '₹82.40',
+    change: '+3.20',
+    percentChange: 4.04,
+    region: 'IN',
+    keywords: ['suzlon', 'green energy', 'renewable energy']
+  },
+  {
+    id: 'jio-fin',
+    symbol: 'JIOFIN.NS',
+    name: 'Jio Financial Services',
+    category: 'stock',
+    price: '₹352.10',
+    change: '+5.80',
+    percentChange: 1.67,
+    region: 'IN',
+    keywords: ['jio financial', 'jiofin', 'jfs']
+  },
+  {
+    id: 'apple',
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    category: 'stock',
+    price: '$228.40',
+    change: '+2.10',
+    percentChange: 0.93,
+    region: 'US',
+    keywords: ['apple', 'iphone', 'tim cook']
+  },
+  {
+    id: 'nvidia',
+    symbol: 'NVDA',
+    name: 'NVIDIA',
+    category: 'stock',
+    price: '$124.50',
+    change: '+3.80',
+    percentChange: 3.15,
+    region: 'US',
+    keywords: ['nvidia', 'nvda', 'jensen huang', 'ai chips']
+  },
+  {
+    id: 'tesla',
+    symbol: 'TSLA',
+    name: 'Tesla',
+    category: 'stock',
+    price: '$255.80',
+    change: '+8.40',
+    percentChange: 3.39,
+    region: 'US',
+    keywords: ['tesla', 'elon musk', 'evs']
+  },
 
   // 4. Forex, Macro & Crypto
   {

@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -37,6 +38,18 @@ export const MarketPulseRibbon: FC = () => {
   const [customKeyword, setCustomKeyword] = useState('');
   const [customCategory, setCustomCategory] = useState<TrackedAsset['category']>('stock');
   const [showAddCustom, setShowAddCustom] = useState(false);
+
+  // Lock background scroll when customizing modal is open
+  useEffect(() => {
+    if (isCustomizing) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCustomizing]);
 
   // Calculate IST Market hours (09:15 - 15:30 Mon-Fri)
   useEffect(() => {
@@ -222,24 +235,25 @@ export const MarketPulseRibbon: FC = () => {
         </div>
       </div>
 
-      {/* Modal / Drawer for Watchlist Customization */}
-      <AnimatePresence>
-        {isCustomizing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsCustomizing(false)}
-            />
-            
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 15 }}
-              className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 p-6 z-10"
-            >
+      {/* Modal / Drawer for Watchlist Customization rendered via Portal on document.body */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isCustomizing && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md"
+                onClick={() => setIsCustomizing(false)}
+              />
+              
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 15 }}
+                className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 p-6 z-10"
+              >
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
@@ -272,10 +286,42 @@ export const MarketPulseRibbon: FC = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search stock, commodity, index (e.g. Reliance, Gold, TCS, Nifty)..."
+                    placeholder="Search any stock, commodity, index (e.g. Tata Steel, RVNL, Gold, Apple)..."
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 text-sm text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   />
                 </div>
+
+                {/* Instant 1-Click Track Any Stock Card */}
+                {searchQuery.trim() && (
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-500/40 flex items-center justify-between gap-3 shadow-xs">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Sparkles size={13} className="text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-bold text-gray-900 dark:text-zinc-100 truncate">
+                          Track "{searchQuery.trim()}"
+                        </span>
+                        <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                          Instant Add
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-600 dark:text-zinc-400 truncate">
+                        Any finance story mentioning "{searchQuery.trim()}" will pin to the top of your feed
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addCustomTrackedAsset(searchQuery.trim(), searchQuery.trim());
+                        setSearchQuery('');
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1 shrink-0"
+                    >
+                      <Plus size={13} />
+                      <span>Track Asset</span>
+                    </button>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
                   {(['all', 'stock', 'commodity', 'index', 'forex'] as const).map((cat) => (
@@ -434,7 +480,9 @@ export const MarketPulseRibbon: FC = () => {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   );
 };
