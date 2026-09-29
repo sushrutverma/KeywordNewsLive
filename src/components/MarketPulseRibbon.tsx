@@ -100,14 +100,12 @@ export const MarketPulseRibbon: FC = () => {
           <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <TrendingUp size={16} />
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-2">
-              Financial Markets Pulse
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Live Watchlist ({trackedAssets.length})
-              </span>
-            </h2>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
+            Live Benchmarks
+          </span>
+          <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs">
+            BETA
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
