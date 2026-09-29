@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 alt="Keyword"
                 className="h-8 w-auto object-contain dark:invert select-none"
               />
-              <p className="text-[10px] text-gray-500 mt-1">Your Curated Feed</p>
+              <p className="text-[10px] text-gray-500 mt-1">Driven by you, Curated for you</p>
             </Link>
             <button
               onClick={onClose}
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               />
             </div>
             <p className="text-[9px] text-gray-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              Your Curated Feed
+              Driven by you, Curated for you
             </p>
           </Link>
 
