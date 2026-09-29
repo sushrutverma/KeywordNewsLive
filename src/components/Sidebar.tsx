@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Bookmark, Settings, Info, X, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -51,10 +51,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-primary dark:text-primary-dark font-unifraktur">Keywords</h1>
-              <p className="text-[10px] text-gray-500 mt-0.5">Your Curated Feed</p>
-            </div>
+            <Link to="/" onClick={onClose} className="block">
+              <img
+                src="/keyword-logo.png"
+                alt="Keyword"
+                className="h-8 w-auto object-contain dark:invert select-none"
+              />
+              <p className="text-[10px] text-gray-500 mt-1">Your Curated Feed</p>
+            </Link>
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-150 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400"
@@ -161,17 +165,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         <div>
           {/* Logo Section */}
-          <div className="flex items-center px-2 py-4 mb-8 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary-dark/10 flex items-center justify-center flex-shrink-0 shadow-inner">
-              <span className="text-xl font-bold text-primary dark:text-primary-dark font-unifraktur">K</span>
+          <Link to="/" className="flex items-center px-2 py-4 mb-8 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 flex items-center justify-center flex-shrink-0 shadow-inner p-2 border border-gray-200/50 dark:border-zinc-700/50">
+              <img
+                src="/keyword-icon.png"
+                alt="K"
+                className="h-6 w-auto object-contain dark:invert select-none"
+              />
             </div>
             <div className="ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
-              <h1 className="text-xl font-bold text-primary dark:text-primary-dark font-unifraktur tracking-wide">
-                Keywords
-              </h1>
-              <p className="text-[9px] text-gray-500">Your Curated Feed</p>
+              <img
+                src="/keyword-logo.png"
+                alt="Keyword"
+                className="h-6 w-auto object-contain dark:invert select-none"
+              />
+              <p className="text-[9px] text-gray-500 mt-0.5">Your Curated Feed</p>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <nav className="space-y-1.5">

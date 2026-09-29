@@ -84,10 +84,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <Menu size={20} />
         </motion.button>
         
-        <Link to="/">
-          <h1 className="text-2xl font-bold text-primary dark:text-primary-dark font-unifraktur tracking-wide">
-            Keywords
-          </h1>
+        <Link to="/" className="flex items-center ml-1">
+          <img
+            src="/keyword-logo.png"
+            alt="Keyword"
+            className="h-7 w-auto object-contain dark:invert transition-all select-none"
+          />
         </Link>
       </div>
 

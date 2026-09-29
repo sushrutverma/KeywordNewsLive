@@ -147,7 +147,12 @@ const SettingsPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">About</h2>
           <h3 className="font-bold text-2xl mb-2 flex items-center">
-            Keywords <span className="ml-3 text-lg px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full">v1.0.0</span>
+            <img
+              src="/keyword-logo.png"
+              alt="Keyword"
+              className="h-8 w-auto object-contain dark:invert select-none"
+            />
+            <span className="ml-3 text-xs px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full font-bold">v1.0.0</span>
           </h3>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
             A modern news aggregator that helps you follow topics that matter to you.
