@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { ASSET_CATALOG, TrackedAsset } from '../services/marketAssets';
+import { searchOnlineStocks } from '../services/stockSearchService';
 
 export const MarketPulseRibbon: FC = () => {
   const { 
@@ -33,6 +34,10 @@ export const MarketPulseRibbon: FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | 'stock' | 'index' | 'commodity' | 'forex'>('all');
   
+  // Live online stock search state
+  const [onlineResults, setOnlineResults] = useState<TrackedAsset[]>([]);
+  const [isSearchingOnline, setIsSearchingOnline] = useState(false);
+
   // Custom asset creation form
   const [customName, setCustomName] = useState('');
   const [customKeyword, setCustomKeyword] = useState('');
@@ -95,6 +100,29 @@ export const MarketPulseRibbon: FC = () => {
     setShowAddCustom(false);
   };
 
+  // Debounced live search across all global/Indian stock exchanges
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setOnlineResults([]);
+      setIsSearchingOnline(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingOnline(true);
+      try {
+        const results = await searchOnlineStocks(searchQuery.trim());
+        setOnlineResults(results);
+      } catch (err) {
+        console.warn('Live search error:', err);
+      } finally {
+        setIsSearchingOnline(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Filter catalog in customization modal
   const filteredCatalog = ASSET_CATALOG.filter((asset) => {
     const matchesCategory = activeCategoryTab === 'all' || asset.category === activeCategoryTab;
@@ -104,6 +132,21 @@ export const MarketPulseRibbon: FC = () => {
       asset.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesQuery;
   });
+
+  // Combine local catalog + live online stock search results (deduped by symbol)
+  const combinedResults: TrackedAsset[] = useMemo(() => {
+    const map = new Map<string, TrackedAsset>();
+    filteredCatalog.forEach(a => map.set(a.symbol.toUpperCase(), a));
+    onlineResults.forEach(a => {
+      const key = a.symbol.toUpperCase();
+      if (!map.has(key)) {
+        if (activeCategoryTab === 'all' || a.category === activeCategoryTab) {
+          map.set(key, a);
+        }
+      }
+    });
+    return Array.from(map.values());
+  }, [filteredCatalog, onlineResults, activeCategoryTab]);
 
   return (
     <div className="mb-6 rounded-2xl p-4 bg-gradient-to-br from-emerald-950/20 via-zinc-900/10 to-indigo-950/20 dark:from-emerald-950/40 dark:via-zinc-900/40 dark:to-zinc-900/40 border border-emerald-500/20 dark:border-emerald-500/30 backdrop-blur-md shadow-sm">
@@ -342,49 +385,64 @@ export const MarketPulseRibbon: FC = () => {
 
               {/* Assets Catalog Grid */}
               <div className="mt-4 max-h-[260px] overflow-y-auto space-y-2 pr-1">
-                {filteredCatalog.map((asset) => {
-                  const isTracked = trackedAssets.some((a) => a.id === asset.id);
-                  return (
-                    <div
-                      key={asset.id}
-                      onClick={() => toggleTrackAsset(asset.id)}
-                      className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                        isTracked
-                          ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40'
-                          : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/30'
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0 pr-3">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-bold text-xs text-gray-900 dark:text-zinc-100 truncate">
-                            {asset.name}
-                          </span>
-                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-200/80 dark:bg-zinc-700/80 text-gray-600 dark:text-zinc-300">
-                            {asset.symbol}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-gray-500 dark:text-zinc-400 flex items-center gap-2">
-                          <span>{asset.price}</span>
-                          <span className={asset.percentChange >= 0 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
-                            {asset.percentChange >= 0 ? '+' : ''}{asset.percentChange.toFixed(2)}%
-                          </span>
-                          <span>•</span>
-                          <span className="truncate">Keywords: {asset.keywords.slice(0, 2).join(', ')}</span>
-                        </div>
-                      </div>
+                {isSearchingOnline && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                    <div className="animate-spin w-3.5 h-3.5 border-2 border-emerald-500 border-t-transparent rounded-full shrink-0" />
+                    <span>Searching all Indian & Global exchanges for "{searchQuery}"...</span>
+                  </div>
+                )}
 
+                {combinedResults.length === 0 && !isSearchingOnline ? (
+                  <div className="p-6 text-center text-xs text-gray-500 dark:text-zinc-400">
+                    No matching assets found. Use the instant track button above to track "{searchQuery}".
+                  </div>
+                ) : (
+                  combinedResults.map((asset) => {
+                    const isTracked = trackedAssets.some((a) => a.id === asset.id || a.symbol.toUpperCase() === asset.symbol.toUpperCase());
+                    return (
                       <div
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition border ${
+                        key={asset.id}
+                        onClick={() => toggleTrackAsset(asset)}
+                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${
                           isTracked
-                            ? 'bg-emerald-600 border-emerald-600 text-white'
-                            : 'border-gray-300 dark:border-zinc-700 text-transparent'
+                            ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40'
+                            : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/30'
                         }`}
                       >
-                        <Check size={14} className={isTracked ? 'block' : 'hidden'} />
+                        <div className="flex-1 min-w-0 pr-3">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-bold text-xs text-gray-900 dark:text-zinc-100 truncate">
+                              {asset.name}
+                            </span>
+                            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-200/80 dark:bg-zinc-700/80 text-gray-600 dark:text-zinc-300">
+                              {asset.symbol}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-gray-500 dark:text-zinc-400 flex items-center gap-2">
+                            <span>{asset.price}</span>
+                            {asset.percentChange !== 0 && (
+                              <span className={asset.percentChange >= 0 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
+                                {asset.percentChange >= 0 ? '+' : ''}{asset.percentChange.toFixed(2)}%
+                              </span>
+                            )}
+                            <span>•</span>
+                            <span className="truncate">Keywords: {asset.keywords.slice(0, 2).join(', ')}</span>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center transition border ${
+                            isTracked
+                              ? 'bg-emerald-600 border-emerald-600 text-white'
+                              : 'border-gray-300 dark:border-zinc-700 text-transparent'
+                          }`}
+                        >
+                          <Check size={14} className={isTracked ? 'block' : 'hidden'} />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
 
               {/* Add Custom Asset Accordion */}

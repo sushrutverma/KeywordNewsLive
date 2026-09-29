@@ -25,7 +25,7 @@ interface NewsContextType {
   selectedTopicId: string;
   setSelectedTopicId: (topicId: string) => void;
   trackedAssets: TrackedAsset[];
-  toggleTrackAsset: (assetId: string) => void;
+  toggleTrackAsset: (assetOrId: string | TrackedAsset) => void;
   addCustomTrackedAsset: (name: string, keyword: string, category?: TrackedAsset['category']) => void;
   removeTrackedAsset: (assetId: string) => void;
   resetWatchlist: () => void;
@@ -260,7 +260,21 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     });
   };
 
-  const toggleTrackAsset = (assetId: string) => {
+  const toggleTrackAsset = (assetOrId: string | TrackedAsset) => {
+    if (typeof assetOrId === 'object' && assetOrId !== null) {
+      const asset = assetOrId;
+      setTrackedAssets(prev => {
+        const exists = prev.some(a => a.id === asset.id || a.symbol === asset.symbol);
+        if (exists) {
+          if (prev.length <= 1) return prev;
+          return prev.filter(a => a.id !== asset.id && a.symbol !== asset.symbol);
+        }
+        return [asset, ...prev];
+      });
+      return;
+    }
+
+    const assetId = assetOrId;
     setTrackedAssets(prev => {
       const exists = prev.some(a => a.id === assetId);
       if (exists) {
@@ -269,7 +283,7 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       }
       const foundInCatalog = ASSET_CATALOG.find(a => a.id === assetId);
       if (foundInCatalog) {
-        return [...prev, foundInCatalog];
+        return [foundInCatalog, ...prev];
       }
       return prev;
     });
