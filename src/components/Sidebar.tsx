@@ -161,21 +161,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* 3. Desktop Hover Sidebar */}
       <div
-        className="hidden md:flex flex-col justify-between fixed left-0 top-0 h-screen bg-white/50 dark:bg-zinc-950/20 backdrop-blur-md border-r border-gray-250/30 dark:border-zinc-900/30 z-40 p-4 transition-all duration-300 ease-in-out group w-[76px] hover:w-[260px] shadow-sm select-none"
+        className="hidden md:flex flex-col justify-between fixed left-0 top-0 h-screen bg-white/80 dark:bg-zinc-950/85 backdrop-blur-xl border-r border-gray-200/70 dark:border-zinc-800/70 z-40 p-3.5 transition-all duration-300 ease-in-out group w-[72px] hover:w-[250px] shadow-sm select-none"
       >
         <div>
           {/* Logo Section */}
-          <Link to="/" className="flex flex-col px-1 py-3 mb-6 overflow-hidden group/logo">
-            <div className="flex items-center h-8">
+          <Link to="/" className="flex items-center px-1.5 py-3 mb-6 overflow-hidden group/logo">
+            <div className="w-8 h-8 flex items-center justify-center shrink-0">
               <img
                 src="/keyword-logo.png"
                 alt="Keyword"
-                className="h-[16px] group-hover:h-[26px] w-auto max-w-[42px] group-hover:max-w-none object-contain dark:invert select-none transition-all duration-300"
+                className="h-6 w-auto max-w-[32px] object-contain dark:invert select-none"
               />
             </div>
-            <p className="text-[9px] text-gray-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              Driven by you, Curated for you
-            </p>
+            <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+              <span className="font-bold text-sm tracking-tight text-gray-900 dark:text-white">Keyword</span>
+              <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">Curated for you</p>
+            </div>
           </Link>
 
           {/* Navigation Links */}
@@ -185,15 +186,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center px-3 py-3 rounded-xl transition-all duration-200 font-medium text-sm overflow-hidden ${
+                  `flex items-center px-2 py-2.5 rounded-xl transition-all duration-200 font-medium text-sm overflow-hidden ${
                     isActive
-                      ? 'bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-900/30'
+                      ? 'bg-primary/10 text-primary dark:bg-primary-dark/15 dark:text-primary-dark font-semibold'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-850/60 hover:text-gray-900 dark:hover:text-zinc-200'
                   }`
                 }
               >
-                <item.icon className="w-5 h-5 flex-shrink-0 ml-1.5" />
-                <span className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
+                <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                  <item.icon className="w-5 h-5" />
+                </div>
+                <span className="ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
                   {item.label}
                 </span>
               </NavLink>
@@ -202,38 +205,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer Area */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Developer Info Button (Desktop) */}
           <div className="relative">
             <button
               onClick={() => setShowInfo(!showInfo)}
-              className={`flex items-center w-full px-3 py-3 rounded-xl transition-all duration-200 text-sm font-medium overflow-hidden ${
+              className={`flex items-center w-full px-2 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium overflow-hidden ${
                 showInfo
-                  ? 'bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-900/30'
+                  ? 'bg-primary/10 text-primary dark:bg-primary-dark/15 dark:text-primary-dark'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-850/60'
               }`}
             >
-              <Info className="w-5 h-5 flex-shrink-0 ml-1.5" />
-              <span className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
+              <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                <Info className="w-5 h-5" />
+              </div>
+              <span className="ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
                 Developer Info
               </span>
             </button>
             <AnimatePresence>
               {showInfo && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, x: 20 }}
+                  initial={{ opacity: 0, scale: 0.95, x: 15 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, x: 20 }}
-                  className="glass-card absolute bottom-0 left-full ml-4 p-4 rounded-xl shadow-xl z-50 min-w-[200px] border border-gray-250/20 dark:border-zinc-800/50"
+                  exit={{ opacity: 0, scale: 0.95, x: 15 }}
+                  transition={{ duration: 0.15 }}
+                  className="glass-card absolute bottom-0 left-full ml-3 p-4 rounded-xl shadow-xl z-50 min-w-[210px] border border-gray-200 dark:border-zinc-800"
                 >
-                  <div className="text-sm">
-                    <div className="font-semibold text-gray-800 dark:text-zinc-200">Developed by</div>
-                    <div className="mt-1 font-medium text-gray-700 dark:text-zinc-300">Sushrut Verma</div>
+                  <div className="text-xs">
+                    <div className="font-semibold text-gray-900 dark:text-zinc-100">Developed by</div>
+                    <div className="mt-1 font-medium text-gray-700 dark:text-zinc-300 text-sm">Sushrut Verma</div>
                     <a
                       href="https://www.linkedin.com/in/sushrutverma"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline dark:text-primary-dark text-xs mt-2 block"
+                      className="text-primary hover:underline dark:text-primary-dark text-xs mt-2 block font-medium"
                     >
                       linkedin.com/in/sushrutverma
                     </a>
@@ -244,34 +250,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* User Profile */}
-          <div className="pt-4 border-t border-gray-250/30 dark:border-zinc-900/60 flex items-center overflow-hidden h-[57px]">
+          <div className="pt-3 border-t border-gray-200/60 dark:border-zinc-850/80 flex items-center overflow-hidden h-[54px]">
             {user ? (
               <>
-                <div className="w-9 h-9 rounded-full bg-primary/10 dark:bg-primary-dark/10 flex items-center justify-center flex-shrink-0 text-primary dark:text-primary-dark font-semibold text-sm">
+                <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/15 flex items-center justify-center shrink-0 text-primary dark:text-primary-dark font-semibold text-xs ml-0.5">
                   {user.email?.charAt(0).toUpperCase()}
                 </div>
                 
                 <div className="ml-3 flex-grow flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 overflow-hidden whitespace-nowrap">
                   <div className="text-xs max-w-[120px]">
-                    <div className="text-gray-500 truncate">Logged in:</div>
-                    <div className="font-semibold text-gray-700 dark:text-gray-300 truncate mt-0.5">{user.email}</div>
+                    <div className="text-gray-400 text-[10px]">Logged in as:</div>
+                    <div className="font-semibold text-gray-800 dark:text-gray-200 truncate">{user.email?.split('@')[0]}</div>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500 transition-colors flex-shrink-0"
+                    className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 transition-colors shrink-0"
                     title="Sign Out"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                   </button>
                 </div>
               </>
             ) : (
               <NavLink
                 to="/login"
-                className="flex items-center px-1.5 py-2 text-xs font-semibold text-primary dark:text-primary-dark transition-colors overflow-hidden"
+                className="flex items-center px-2 py-2 text-xs font-semibold text-primary dark:text-primary-dark transition-colors overflow-hidden rounded-xl hover:bg-primary/5 dark:hover:bg-primary/10 w-full"
               >
-                <LogOut size={18} className="flex-shrink-0 ml-1.5 transform rotate-180" />
-                <span className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
+                <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                  <LogOut size={16} className="transform rotate-180" />
+                </div>
+                <span className="ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden">
                   Sign In
                 </span>
               </NavLink>

@@ -187,87 +187,104 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.25 }}
-      className={`article-card glass-card rounded-xl overflow-hidden mb-6 relative card-glow-hover cursor-pointer ${getCategoryClass()} ${
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className={`article-card glass-card rounded-2xl overflow-hidden relative card-glow-hover cursor-pointer h-full flex flex-col justify-between group ${
         article.isWatchlistMatch
-          ? 'border-l-4 border-l-amber-500 dark:border-l-amber-400 ring-1 ring-amber-500/25 bg-amber-500/[0.02]'
+          ? 'border-l-4 border-l-amber-500/90 dark:border-l-amber-400/90'
           : ''
       }`}
       style={{ touchAction: 'pan-y' }}
     >
-      <Link to={`/article/${article.id}`} className="block">
-        {article.image && (
-          <div className={`w-full overflow-hidden ${isFeatured ? 'h-64 md:h-72' : 'h-48'}`}>
-            <img
-              src={article.image}
-              alt={article.title || 'Article image'}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
-
-        <div className="p-6 pb-0">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            {article.isWatchlistMatch && (
-              <span className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-emerald-500/15 to-teal-500/15 text-amber-900 dark:text-amber-200 border border-amber-400/50 dark:border-amber-400/40 shadow-xs">
-                <Sparkles size={11} className="mr-1 text-amber-500 dark:text-amber-400" />
-                ⭐ Tracked {article.matchedAssetName ? `(${article.matchedAssetName})` : 'Asset'}
-              </span>
-            )}
-            <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark">
-              {article.source || 'Unknown'} • {formatDate(article.pubDate)}
-            </span>
-            {relatedCount > 0 && (
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 shadow-xs">
-                <Layers size={12} className="mr-1.5 text-indigo-500" />
-                Covered by {uniqueSources.length} sources
-              </span>
-            )}
-            {detectedTicker && (
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-xs">
-                <TrendingUp size={11} className="mr-1 text-emerald-600 dark:text-emerald-400" />
-                {detectedTicker}
-              </span>
-            )}
-          </div>
-
-          <h2
-            className={`font-playfair font-bold mb-3 text-primary dark:text-primary-dark hover:underline ${
-              isFeatured ? 'text-2xl md:text-3xl' : 'text-xl'
-            }`}
-          >
-            {highlightKeyword(article.title || 'Untitled', keyword)}
-          </h2>
-
-          {formattedContent && (
-            <p className="font-source-serif text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
-              {highlightKeyword(formattedContent, keyword)}
-            </p>
+      <div>
+        <Link to={`/article/${article.id}`} className="block">
+          {article.image && (
+            <div className={`w-full overflow-hidden bg-gray-100 dark:bg-zinc-800 ${isFeatured ? 'h-60 sm:h-72' : 'h-48'}`}>
+              <img
+                src={article.image}
+                alt={article.title || 'Article image'}
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           )}
-        </div>
-      </Link>
 
-      <div className="p-6 pt-3 border-t border-gray-200/50 dark:border-gray-700/50 flex flex-wrap justify-between items-center gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+          <div className="p-5 sm:p-6 pb-2">
+            {/* Meta & Badges Hierarchy */}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2.5">
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">
+                {article.source || 'News'}
+              </span>
+              <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+                {formatDate(article.pubDate)}
+              </span>
+
+              {article.isWatchlistMatch && (
+                <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  <Sparkles size={10} className="mr-1 text-amber-500" />
+                  {article.matchedAssetName || 'Watchlist'}
+                </span>
+              )}
+
+              {detectedTicker && (
+                <span className="inline-flex items-center text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <TrendingUp size={10} className="mr-1" />
+                  {detectedTicker}
+                </span>
+              )}
+
+              {relatedCount > 0 && (
+                <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                  <Layers size={10} className="mr-1 text-indigo-500" />
+                  {uniqueSources.length} sources
+                </span>
+              )}
+            </div>
+
+            {/* Headline */}
+            <h2
+              className={`font-semibold tracking-tight text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-dark transition-colors mb-2.5 line-clamp-2 ${
+                isFeatured ? 'text-xl sm:text-2xl leading-snug' : 'text-lg leading-snug'
+              }`}
+            >
+              {highlightKeyword(article.title || 'Untitled', keyword)}
+            </h2>
+
+            {/* Description */}
+            {formattedContent && (
+              <p className="text-sm text-gray-600 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
+                {highlightKeyword(formattedContent, keyword)}
+              </p>
+            )}
+          </div>
+        </Link>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="p-4 sm:p-5 pt-3 border-t border-gray-100 dark:border-zinc-800/80 flex items-center justify-between gap-2 mt-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
           <Link
             to={`/article/${article.id}`}
-            className="fab whitespace-nowrap px-4 py-2 rounded-full text-white text-sm font-medium flex items-center"
+            className="fab whitespace-nowrap px-3 sm:px-3.5 py-1.5 rounded-xl text-white text-xs font-semibold flex items-center"
           >
-            Read more <ExternalLink size={14} className="ml-2" />
+            Read <ExternalLink size={12} className="ml-1.5" />
           </Link>
 
           <button
-            onClick={handleSummarize}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSummarize();
+            }}
             disabled={isLoading}
-            className="whitespace-nowrap px-4 py-2 rounded-full bg-accent/10 text-accent dark:bg-accent-dark/10 dark:text-accent-dark text-sm font-medium flex items-center disabled:opacity-50"
+            className="whitespace-nowrap px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/30 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs font-medium flex items-center transition-colors disabled:opacity-50 border border-purple-200/60 dark:border-purple-800/40"
           >
-            <Sparkles size={14} className="mr-2" />
-            {isLoading ? 'Loading...' : 'AI Summary'}
+            <Sparkles size={12} className="mr-1 text-purple-500" />
+            {isLoading ? '...' : 'AI Summary'}
           </button>
 
           {relatedCount > 0 && (
@@ -278,28 +295,42 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
                 e.stopPropagation();
                 setShowRelated(!showRelated);
               }}
-              className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/70 transition-colors"
+              className="whitespace-nowrap inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-zinc-300 transition-colors"
             >
-              <Layers size={13} className="text-indigo-600 dark:text-indigo-400" />
-              <span>{showRelated ? 'Hide' : 'Compare'} {relatedCount} other {relatedCount === 1 ? 'perspective' : 'perspectives'}</span>
-              {showRelated ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              <Layers size={11} className="text-gray-500" />
+              <span>{showRelated ? 'Hide' : `+${relatedCount}`}</span>
+              {showRelated ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
             </button>
           )}
         </div>
 
-        <div className="flex space-x-2">
-          <button onClick={handleShare} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" title="Share article">
-            <Share2 size={18} className="text-gray-600 dark:text-gray-400" />
+        <div className="flex items-center space-x-1 shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleShare();
+            }}
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 transition-colors"
+            title="Share article"
+          >
+            <Share2 size={16} />
           </button>
 
           <button
-            onClick={handleBookmarkToggle}
-            className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${
-              isBookmarked ? 'text-accent dark:text-accent-dark' : 'text-gray-600 dark:text-gray-400'
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleBookmarkToggle();
+            }}
+            className={`p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${
+              isBookmarked ? 'text-primary dark:text-primary-dark' : 'text-gray-500 dark:text-zinc-400'
             }`}
             title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
           >
-            <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+            <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
           </button>
         </div>
       </div>

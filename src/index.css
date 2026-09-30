@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 /*——————————————————————————————————
-  1. Root variables (Matte & Accent Palettes)
+  1. Root variables (Refined & Balanced Palette)
 ——————————————————————————————————*/
 :root {
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --primary: #4f46e5;
-  --primary-dark: #818cf8;
+  --primary-dark: #6366f1;
   --accent: #db2777;
-  --accent-dark: #f472b6;
+  --accent-dark: #ec4899;
   
-  /* Matte backgrounds */
-  --bg-light: #f8f9fa;
-  --bg-dark: #0e0e11;
+  /* Modern clean backgrounds */
+  --bg-light: #f8fafc;
+  --bg-dark: #09090b;
   
-  /* Card matte colors */
-  --card-bg-light: rgba(255, 255, 255, 0.9);
-  --card-bg-dark: rgba(22, 22, 26, 0.85);
-  --card-border-light: rgba(228, 228, 231, 0.7);
-  --card-border-dark: rgba(39, 39, 42, 0.7);
+  /* Glass card surfaces */
+  --card-bg-light: rgba(255, 255, 255, 0.85);
+  --card-bg-dark: rgba(18, 18, 23, 0.8);
+  --card-border-light: rgba(226, 232, 240, 0.8);
+  --card-border-dark: rgba(39, 39, 42, 0.6);
   
-  /* Category Matte Accent Colors */
+  /* Category Accent Colors (Refined tones) */
   --color-technology: #3b82f6;
   --color-business: #f97316;
   --color-news: #10b981;
@@ -69,102 +69,100 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-y: auto;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-light);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='40' viewBox='0 0 100 40'%3E%3Cpath d='M 0 10 Q 25 0, 50 10 T 100 10' fill='none' stroke='rgba(79, 70, 229, 0.1)' stroke-width='1.5'/%3E%3Cpath d='M 0 30 Q 25 20, 50 30 T 100 30' fill='none' stroke='rgba(79, 70, 229, 0.1)' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-image: 
+    radial-gradient(at 15% 10%, rgba(99, 102, 241, 0.04) 0px, transparent 40%),
+    radial-gradient(at 85% 25%, rgba(219, 39, 119, 0.03) 0px, transparent 40%),
+    radial-gradient(at 50% 90%, rgba(59, 130, 246, 0.03) 0px, transparent 50%);
   background-attachment: fixed;
-  color: #18181b;
+  color: #0f172a;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark body {
   background-color: var(--bg-dark);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='40' viewBox='0 0 100 40'%3E%3Cpath d='M 0 10 Q 25 0, 50 10 T 100 10' fill='none' stroke='rgba(129, 140, 248, 0.07)' stroke-width='1.5'/%3E%3Cpath d='M 0 30 Q 25 20, 50 30 T 100 30' fill='none' stroke='rgba(129, 140, 248, 0.07)' stroke-width='1.5'/%3E%3C/svg%3E");
-  color: #f4f4f5;
+  background-image: 
+    radial-gradient(at 20% 15%, rgba(99, 102, 241, 0.07) 0px, transparent 50%),
+    radial-gradient(at 80% 20%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+  color: #f1f5f9;
 }
 
 /* Font mapping aliases */
 .font-playfair {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .font-source-serif {
-  font-family: 'Lora', serif;
+  font-family: 'Lora', Georgia, serif;
 }
 
 /*——————————————————————————————————
-  3. Matte card & elevation styling
+  3. Matte & Glass Card Elevation
 ——————————————————————————————————*/
 
 .glass-card {
   background-color: var(--card-bg-light);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border-light);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 16px -6px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 10px 24px -3px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
 .dark .glass-card {
   background-color: var(--card-bg-dark);
   border-color: var(--card-border-dark);
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.3), 0 10px 15px -5px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 12px 28px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Active Outline colors on hover */
+/* Smooth Card Hover */
 .card-glow-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
-.card-technology:hover {
-  border-color: var(--color-technology) !important;
-  box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.12) !important;
+.card-glow-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
-.card-business:hover {
-  border-color: var(--color-business) !important;
-  box-shadow: 0 10px 30px -10px rgba(249, 115, 22, 0.12) !important;
+.dark .card-glow-hover:hover {
+  box-shadow: 0 20px 36px -10px rgba(0, 0, 0, 0.6), 0 6px 16px -2px rgba(99, 102, 241, 0.15);
+  border-color: rgba(129, 140, 248, 0.35);
 }
 
-.card-topstories:hover, .card-national:hover, .card-news:hover {
-  border-color: var(--color-news) !important;
-  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.12) !important;
-}
-
-.card-sports:hover {
-  border-color: var(--color-sports) !important;
-  box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.12) !important;
-}
-
-.card-entertainment:hover {
-  border-color: var(--color-entertainment) !important;
-  box-shadow: 0 10px 30px -10px rgba(236, 72, 153, 0.12) !important;
-}
-
-.card-international:hover {
-  border-color: var(--color-international) !important;
-  box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.12) !important;
-}
-
-.card-financemarkets:hover {
-  border-color: var(--color-financemarkets) !important;
-  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15) !important;
-}
-
-/* Floating action button */
+/* Primary Action button */
 .fab {
   background-color: var(--primary);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.fab:hover {
+  background-color: #4338ca;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
 }
 
 .dark .fab {
   background-color: var(--primary-dark);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+}
+
+.dark .fab:hover {
+  background-color: #4f46e5;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
 .fab:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  transform: scale(0.97);
 }
 
 /* Allow text selection in specific elements */
@@ -181,75 +179,6 @@ input, textarea, [contenteditable="true"], p, span, div[class*="text"], article 
   
   .hover\:bg-gray-200:hover {
     background-color: transparent;
-  }
-  
-  .active\:bg-gray-100:active {
-    background-color: rgba(243, 244, 246, 0.4);
-  }
-  
-  .active\:bg-gray-200:active {
-    background-color: rgba(229, 231, 235, 0.4);
-  }
-}
-
-/*——————————————————————————————————
-  4. Main content scrolling
-——————————————————————————————————*/
-.main-content {
-  -webkit-overflow-scrolling: touch;
-  overflow-y: auto;
-  height: 100%;
-  position: relative;
-  z-index: 1;
-}
-
-/* iOS scroll fix */
-@supports (-webkit-touch-callout: none) {
-  .ios-scroll-fix {
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
-    height: 100%;
-    position: relative;
-  }
-}
-
-/*——————————————————————————————————
-  5. Pull-to-refresh container
-——————————————————————————————————*/
-.ptr-element {
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
-}
-
-.ptr-container {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  height: 100%;
-}
-
-/*——————————————————————————————————
-  6. Article card touch handling
-——————————————————————————————————*/
-.article-card {
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  z-index: 1;
-  touch-action: pan-y;
-}
-
-/* Responsive text sizes */
-@media (max-width: 640px) {
-  .text-2xl {
-    font-size: 1.5rem;
-  }
-  
-  .text-xl {
-    font-size: 1.25rem;
-  }
-  
-  .text-lg {
-    font-size: 1.125rem;
   }
 }
 
@@ -269,30 +198,13 @@ input, textarea, [contenteditable="true"], p, span, div[class*="text"], article 
 }
 
 .shimmer {
-  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
 
 .dark .shimmer {
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
-}
-
-/* Premium Card Glow & Hover styles */
-.card-glow-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border-width: 1px;
-}
-
-.card-glow-hover:hover {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.25);
-  border-color: rgba(99, 102, 241, 0.3);
-}
-
-.dark .card-glow-hover:hover {
-  box-shadow: 0 20px 45px -15px rgba(129, 140, 248, 0.35);
-  border-color: rgba(129, 140, 248, 0.4);
 }

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, LogIn, Menu, Search, User } from 'lucide-react';
+import { Settings, LogIn, Menu, Search, User, Command } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNews } from '../contexts/NewsContext';
 import { ThemeToggle } from './ThemeToggle';
@@ -14,122 +14,73 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, signOut } = useAuth();
   const { setIsSearchOpen } = useNews();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [visible, setVisible] = useState(true);
 
-  // Monitor scroll movements locally to show/hide header based on direction (avoids root App re-renders)
-  useEffect(() => {
-    let lastY = 0;
-
-    const handleScroll = (e: Event) => {
-      if (window.innerWidth >= 768) {
-        setVisible(prev => prev ? prev : true);
-        return;
-      }
-
-      const target = e.target as HTMLElement | Document;
-      const currentY = target === document || target instanceof Document 
-        ? window.scrollY 
-        : (target as HTMLElement).scrollTop;
-
-      const diff = currentY - lastY;
-
-      // Scroll down: hide header
-      if (diff > 5 && currentY > 80) {
-        setVisible(prev => {
-          if (prev) return false;
-          return prev;
-        });
-      } 
-      // Scroll up: show header
-      else if (diff < -15) {
-        setVisible(prev => {
-          if (!prev) return true;
-          return prev;
-        });
-      }
-
-      // Always show header at page top
-      if (currentY <= 10) {
-        setVisible(prev => {
-          if (!prev) return true;
-          return prev;
-        });
-      }
-
-      lastY = currentY;
-    };
-
-    window.addEventListener('scroll', handleScroll, true);
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-    };
-  }, []);
+  const isMac = typeof window !== 'undefined' && navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
 
   return (
-    <header 
-      className={`glass-card backdrop-blur-md px-6 py-4 rounded-2xl flex items-center justify-between mb-3 md:mb-4 shadow-sm border border-gray-200/40 dark:border-zinc-850/40 w-full relative z-30 transition-[transform,opacity] duration-300 ease-in-out
-        max-md:fixed max-md:top-4 max-md:left-4 max-md:right-4 max-md:w-[calc(100%-2rem)] max-md:mb-0 max-md:shadow-lg
-        ${visible ? 'translate-y-0 opacity-100' : 'max-md:-translate-y-28 max-md:opacity-0 max-md:pointer-events-none'}
-      `}
-    >
-      
-      {/* Brand Logo & Mobile Menu Toggle (Visible on mobile, hidden on desktop to avoid duplication) */}
-      <div className="flex items-center space-x-1.5 md:hidden">
+    <header className="glass-card backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl flex items-center justify-between mb-4 shadow-xs border border-gray-200/60 dark:border-zinc-800/60 w-full relative z-30 transition-all duration-200">
+      {/* 1. Left: Brand Anchor */}
+      <div className="flex items-center space-x-2 shrink-0">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onMenuClick}
-          className="p-2 rounded-full hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 text-gray-700 dark:text-zinc-300 transition-colors"
+          className="p-2 -ml-1 rounded-xl md:hidden hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 transition-colors"
           title="Open Menu"
         >
-          <Menu size={20} />
+          <Menu size={19} />
         </motion.button>
         
-        <Link to="/" className="flex items-center ml-1">
+        <Link to="/" className="flex items-center space-x-2 group">
           <img
             src="/keyword-logo.png"
             alt="Keyword"
-            className="h-7 w-auto object-contain dark:invert transition-all select-none"
+            className="h-6 sm:h-7 w-auto object-contain dark:invert transition-transform group-hover:scale-105 duration-200 select-none"
           />
         </Link>
       </div>
 
-
-
-      {/* Search Pill (Desktop) */}
-      <div 
-        onClick={() => setIsSearchOpen(true)}
-        className="hidden md:flex items-center bg-zinc-200/30 dark:bg-zinc-800/15 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/40 border border-gray-250/30 dark:border-zinc-800/70 pl-5 pr-3 py-2 rounded-full cursor-pointer transition-all duration-300 w-72 text-zinc-400 dark:text-zinc-500 select-none shadow-sm group"
-      >
-        <span className="text-xs font-medium flex-1">Search news feed...</span>
-        <div className="bg-white dark:bg-zinc-900 border border-gray-205/60 dark:border-zinc-800/80 p-1.5 rounded-full shadow-sm text-zinc-400 dark:text-zinc-500 group-hover:text-primary dark:group-hover:text-primary-dark group-hover:border-primary/20 dark:group-hover:border-primary-dark/20 transition-all duration-200">
-          <Search size={12} />
-        </div>
+      {/* 2. Center: Quick Search Command Bar (Desktop & Tablet) */}
+      <div className="hidden sm:flex flex-1 max-w-md mx-4 justify-center">
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          className="w-full max-w-sm flex items-center justify-between bg-gray-100/70 hover:bg-gray-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/70 border border-gray-200/80 dark:border-zinc-750/60 pl-3.5 pr-2.5 py-1.5 rounded-xl cursor-pointer transition-all duration-200 text-gray-500 dark:text-zinc-400 select-none group shadow-2xs hover:border-indigo-400/40 dark:hover:border-indigo-500/40"
+        >
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <Search size={14} className="text-gray-400 group-hover:text-primary dark:group-hover:text-primary-dark transition-colors shrink-0" />
+            <span className="text-xs font-medium truncate">Search news feed...</span>
+          </div>
+          <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-medium font-mono text-gray-400 dark:text-zinc-500 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 px-1.5 py-0.5 rounded shadow-2xs">
+            {isMac ? <Command size={10} /> : <span className="text-[9px]">Ctrl</span>}
+            <span>K</span>
+          </kbd>
+        </button>
       </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center space-x-2 md:space-x-3">
+      {/* 3. Right: Control Actions */}
+      <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
         {/* Mobile Search Button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsSearchOpen(true)}
-          className="flex md:hidden p-2 rounded-full hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 text-gray-700 dark:text-zinc-300 transition-colors"
+          className="flex sm:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 transition-colors"
           title="Search"
         >
-          <Search size={20} />
+          <Search size={18} />
         </motion.button>
 
         <ThemeToggle />
 
-        {/* Authentication Actions */}
+        {/* User Account State */}
         {user ? (
           <div className="relative">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 dark:bg-primary-dark/10 dark:hover:bg-primary-dark/20 text-primary dark:text-primary-dark font-medium text-xs transition-colors border border-primary/20 dark:border-primary-dark/20"
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/15 dark:bg-primary-dark/15 dark:hover:bg-primary-dark/25 text-primary dark:text-primary-dark font-medium text-xs transition-colors border border-primary/20 dark:border-primary-dark/25"
             >
               <User size={14} />
-              <span className="hidden sm:inline max-w-[100px] truncate">{user.email?.split('@')[0]}</span>
+              <span className="hidden md:inline max-w-[90px] truncate">{user.email?.split('@')[0]}</span>
             </motion.button>
 
             <AnimatePresence>
@@ -137,18 +88,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    initial={{ opacity: 0, scale: 0.96, y: 8 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="glass-card absolute right-0 mt-2 w-48 rounded-xl shadow-xl z-50 p-2 border border-gray-250/50 dark:border-zinc-850/50"
+                    exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="glass-card absolute right-0 mt-2 w-52 rounded-xl shadow-xl z-50 p-1.5 border border-gray-200 dark:border-zinc-800"
                   >
-                    <div className="px-3 py-2 text-xs border-b border-gray-250/50 dark:border-zinc-850/50 text-gray-500 dark:text-zinc-400 truncate">
+                    <div className="px-3 py-2 text-xs border-b border-gray-100 dark:border-zinc-800/80 text-gray-500 dark:text-zinc-400 truncate">
                       {user.email}
                     </div>
                     <Link
                       to="/settings"
                       onClick={() => setShowUserMenu(false)}
-                      className="flex items-center w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800/50 rounded-lg transition-colors mt-1"
+                      className="flex items-center w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors mt-1"
                     >
                       <Settings size={14} className="mr-2" />
                       Settings
@@ -158,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         setShowUserMenu(false);
                         signOut();
                       }}
-                      className="flex items-center w-full px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors mt-1"
+                      className="flex items-center w-full px-3 py-2 text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors mt-1"
                     >
                       <LogIn size={14} className="mr-2 transform rotate-180" />
                       Sign Out
@@ -172,9 +124,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <Link to="/login">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              className="fab px-4 py-2 rounded-full text-white text-xs font-medium flex items-center"
+              className="fab px-3.5 py-1.5 rounded-xl text-white text-xs font-medium flex items-center shadow-xs"
             >
-              <LogIn size={14} className="mr-1.5" />
+              <LogIn size={13} className="mr-1.5" />
               Sign In
             </motion.button>
           </Link>

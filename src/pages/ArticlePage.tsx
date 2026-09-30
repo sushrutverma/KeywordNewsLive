@@ -274,18 +274,18 @@ const ArticlePage = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 max-w-3xl mx-auto">
+      <div className="min-h-screen p-6 max-w-4xl mx-auto">
         <ArticlePageSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Hero Section with Image */}
-      {article.image && (
-        <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10"></div>
+    <div className="min-h-screen">
+      {/* 1. If article has image: Hero Section */}
+      {article.image ? (
+        <div className="relative h-[36vh] sm:h-[45vh] overflow-hidden rounded-2xl mb-6 shadow-md">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent z-10" />
           <motion.img
             layoutId={`image-${article.id}`}
             src={article.image}
@@ -293,68 +293,95 @@ const ArticlePage = () => {
             className="w-full h-full object-cover"
           />
           
-          {/* Floating Navigation */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-6 left-6 z-20"
-          >
+          {/* Floating Navigation Controls */}
+          <div className="absolute top-4 left-4 z-20">
             <button
               onClick={() => navigate(-1)}
-              className="backdrop-blur-md bg-white/20 dark:bg-black/20 p-3 rounded-full hover:bg-white/30 dark:hover:bg-black/30 transition-all duration-300 shadow-lg"
+              className="backdrop-blur-md bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-xl transition-all duration-200 shadow-md border border-white/10"
+              title="Go back"
             >
-              <ArrowLeft className="text-white" size={20} />
+              <ArrowLeft size={18} />
             </button>
-          </motion.div>
+          </div>
 
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="absolute top-6 right-6 z-20 flex space-x-3"
-          >
+          <div className="absolute top-4 right-4 z-20 flex items-center space-x-2">
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleShare}
-              className="backdrop-blur-md bg-white/20 dark:bg-black/20 p-3 rounded-full hover:bg-white/30 dark:hover:bg-black/30 transition-all duration-300 shadow-lg"
+              className="backdrop-blur-md bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-xl transition-all duration-200 shadow-md border border-white/10"
+              title="Share"
             >
-              <Share2 size={18} className="text-white" />
+              <Share2 size={16} />
             </motion.button>
             
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleBookmarkToggle}
-              className={`backdrop-blur-md p-3 rounded-full transition-all duration-300 shadow-lg ${
+              className={`backdrop-blur-md p-2.5 rounded-xl transition-all duration-200 shadow-md border border-white/10 ${
                 isBookmarked 
-                  ? 'bg-indigo-600/80 hover:bg-indigo-700/80' 
-                  : 'bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30'
+                  ? 'bg-primary text-white' 
+                  : 'bg-black/40 hover:bg-black/60 text-white'
               }`}
+              title={isBookmarked ? 'Saved' : 'Save'}
             >
               <Bookmark 
-                size={18} 
-                className="text-white" 
+                size={16} 
                 fill={isBookmarked ? 'currentColor' : 'none'} 
               />
             </motion.button>
-          </motion.div>
+          </div>
+        </div>
+      ) : (
+        /* 2. If article has NO image: Clean Top Bar */
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200/60 dark:border-zinc-800/60">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-zinc-300 text-xs font-medium transition-colors"
+          >
+            <ArrowLeft size={15} />
+            <span>Back</span>
+          </button>
+          
+          <div className="flex items-center space-x-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleShare}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-400 transition-colors"
+              title="Share"
+            >
+              <Share2 size={16} />
+            </motion.button>
+            
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBookmarkToggle}
+              className={`p-2 rounded-xl transition-colors ${
+                isBookmarked 
+                  ? 'text-primary dark:text-primary-dark bg-primary/10 dark:bg-primary-dark/15' 
+                  : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800'
+              }`}
+              title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+            >
+              <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
+            </motion.button>
+          </div>
         </div>
       )}
 
       {/* Content Container */}
-      <div className="relative -mt-16 md:-mt-20 z-10 mb-16">
+      <div className="relative z-10 mb-16">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto px-4 sm:px-6"
+          transition={{ duration: 0.4 }}
+          className="max-w-4xl mx-auto"
         >
           {/* Article Card */}
           <motion.div
             layoutId={`card-${article.id}`}
-            className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden"
+            className="glass-card rounded-2xl shadow-xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60"
           >
-            <div className="flex flex-col lg:flex-row lg:divide-x lg:divide-gray-200/50 lg:dark:divide-zinc-800/50">
+            <div className="flex flex-col lg:flex-row lg:divide-x lg:divide-gray-200/60 lg:dark:divide-zinc-800/60">
               
               {/* Left Column (60% width) - Main Reading Content */}
               <div className="w-full lg:w-3/5 flex flex-col justify-between">
@@ -529,42 +556,6 @@ const ArticlePage = () => {
 
             </div>
           </motion.div>
-
-          {/* No Image Fallback Header */}
-          {!article.image && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-3 rounded-full hover:bg-white/20 dark:hover:bg-gray-800/50 transition-colors backdrop-blur-sm"
-                >
-                  <ArrowLeft className="text-gray-600 dark:text-gray-400" size={20} />
-                </button>
-                
-                <div className="flex space-x-3">
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleShare}
-                    className="p-3 rounded-full hover:bg-white/20 dark:hover:bg-gray-800/50 transition-colors backdrop-blur-sm"
-                  >
-                    <Share2 size={18} className="text-gray-600 dark:text-gray-400" />
-                  </motion.button>
-                  
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleBookmarkToggle}
-                    className={`p-3 rounded-full transition-colors backdrop-blur-sm ${
-                      isBookmarked 
-                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50' 
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-gray-800/50'
-                    }`}
-                  >
-                    <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          )}
         </motion.div>
       </div>
 
