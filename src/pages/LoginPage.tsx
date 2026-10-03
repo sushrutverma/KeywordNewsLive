@@ -44,7 +44,7 @@ const LoginPage = () => {
       >
         <div className="text-center">
           <LogIn className="mx-auto h-12 w-12 text-indigo-600 dark:text-indigo-400" />
-          <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h2>
+          <h1 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
             <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">

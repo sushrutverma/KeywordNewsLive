@@ -75,6 +75,7 @@ const SignupPage = () => {
         canonicalPath="/signup"
         noindex={true}
       />
+      <h1 className="sr-only">Create Your Keyword Account</h1>
       <div className="w-full max-w-lg">
         {/* Step Indicator Dots */}
         <div className="flex justify-center space-x-2.5 mb-8">

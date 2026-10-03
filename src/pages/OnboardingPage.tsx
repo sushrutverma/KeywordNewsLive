@@ -115,6 +115,7 @@ const OnboardingPage = () => {
         canonicalPath="/onboarding"
         noindex={true}
       />
+      <h1 className="sr-only">Customize Your Reading Preferences</h1>
       <div className="w-full max-w-2xl">
         
         {/* Step Indicator Progress Bar */}

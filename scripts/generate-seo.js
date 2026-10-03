@@ -116,15 +116,90 @@ if (fs.existsSync(distDir)) {
       }
 
       // Replace or inject robots
-      if (routeHtml.includes('<meta name="robots"')) {
-        routeHtml = routeHtml.replace(/<meta name="robots" content="[\s\S]*?" \/>/, `<meta name="robots" content="${route.robots}" />`);
-      } else if (routeHtml.includes('</head>')) {
-        routeHtml = routeHtml.replace('</head>', `  <meta name="robots" content="${route.robots}" />\n</head>`);
+      // Inject Organization and WebSite structured data
+      const staticSchema = `  <script type="application/ld+json">
+${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'NewsMediaOrganization',
+      '@id': `${siteUrl}/#organization`,
+      name: 'Keyword News',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/keyword-logo.png`
+      },
+      description: 'Real-time multi-source AI news intelligence and market aggregation platform.',
+      sameAs: [
+        'https://twitter.com/TODO_handle',
+        'https://linkedin.com/company/TODO_company',
+        'https://github.com/TODO_org'
+      ],
+      founder: {
+        '@type': 'Person',
+        name: 'TODO: Founder Name'
+      }
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: 'Keyword',
+      url: siteUrl,
+      publisher: {
+        '@id': `${siteUrl}/#organization`
+      }
+    }
+  ]
+}, null, 2)}
+  </script>\n</head>`;
+      if (routeHtml.includes('</head>')) {
+        routeHtml = routeHtml.replace('</head>', staticSchema);
       }
 
       fs.writeFileSync(path.join(targetDir, 'index.html'), routeHtml);
       console.log(`[SEO Prerender] Prerendered HTML shell for ${route.path}`);
     });
+
+    // Also inject schema into dist/index.html
+    const baseSchemaTag = `  <script type="application/ld+json">
+${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'NewsMediaOrganization',
+      '@id': `${siteUrl}/#organization`,
+      name: 'Keyword News',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/keyword-logo.png`
+      },
+      description: 'Real-time multi-source AI news intelligence and market aggregation platform.',
+      sameAs: [
+        'https://twitter.com/TODO_handle',
+        'https://linkedin.com/company/TODO_company',
+        'https://github.com/TODO_org'
+      ]
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: 'Keyword',
+      url: siteUrl,
+      publisher: {
+        '@id': `${siteUrl}/#organization`
+      }
+    }
+  ]
+}, null, 2)}
+  </script>\n</head>`;
+    let homeHtml = templateHtml;
+    if (homeHtml.includes('</head>') && !homeHtml.includes('NewsMediaOrganization')) {
+      homeHtml = homeHtml.replace('</head>', baseSchemaTag);
+      fs.writeFileSync(templatePath, homeHtml);
+      console.log('[SEO Prerender] Injected structured data into dist/index.html');
+    }
   }
 }
 

@@ -9,6 +9,7 @@ import { aiService } from '../services/aiService';
 import { scraperService, sanitizeArticleHtml } from '../services/scraperService';
 import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
 import SEOHead from '../components/SEOHead';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const isSafeUrl = (url?: string): boolean => {
   if (!url) return false;
@@ -417,6 +418,16 @@ const ArticlePage = () => {
           transition={{ duration: 0.4 }}
           className="max-w-4xl mx-auto"
         >
+          {/* Breadcrumbs Navigation */}
+          <Breadcrumbs
+            items={[
+              { label: 'Home', href: '/' },
+              { label: article.source || 'News', href: '/' },
+              { label: article.title },
+            ]}
+            className="mb-3 px-1"
+          />
+
           {/* Article Card */}
           <motion.div
             layoutId={`card-${article.id}`}

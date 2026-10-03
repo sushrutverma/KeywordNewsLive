@@ -32,6 +32,7 @@ const HomePage = () => {
         canonicalPath="/"
         noindex={false}
       />
+      <h1 className="sr-only">Keyword – Driven by you, Curated for you</h1>
       {/* Horizontal Scrolling Topics Tab Bar */}
       <div className="mb-6 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="flex items-center space-x-1.5 pb-2 border-b border-gray-200/60 dark:border-zinc-800/60 min-w-max">
