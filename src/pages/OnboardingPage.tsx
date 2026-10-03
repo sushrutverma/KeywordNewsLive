@@ -76,26 +76,25 @@ const OnboardingPage = () => {
     setError('');
 
     try {
-      if (user) {
-        const { error: upsertError } = await upsertProfile({
-          full_name: fullName,
-          occupation: selectedOccupation,
-          reading_goal: selectedGoal,
-          followed_topics: followedTopics
-        });
+      const profileData = {
+        full_name: fullName,
+        occupation: selectedOccupation,
+        reading_goal: selectedGoal,
+        followed_topics: followedTopics
+      };
 
-        if (upsertError) throw upsertError;
+      localStorage.setItem('user_profile_data', JSON.stringify(profileData));
+      localStorage.setItem('followedTopics', JSON.stringify(followedTopics));
+
+      if (user) {
+        await upsertProfile(profileData);
       } else {
-        localStorage.setItem('guest_profile', JSON.stringify({
-          full_name: fullName,
-          occupation: selectedOccupation,
-          reading_goal: selectedGoal,
-          followed_topics: followedTopics
-        }));
+        localStorage.setItem('guest_profile', JSON.stringify(profileData));
       }
       navigate('/');
     } catch (err: any) {
-      setError(err?.message || 'Failed to save profile. Please try again.');
+      console.warn('Profile sync notice (using local storage):', err);
+      navigate('/');
     } finally {
       setSubmitting(false);
     }

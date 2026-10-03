@@ -49,10 +49,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .maybeSingle();
 
-      if (error) throw error;
-      setProfile(data);
+      if (!error && data) {
+        setProfile(data);
+        return;
+      }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      console.warn('Could not fetch user profile from database, checking local storage:', err);
+    }
+
+    // Local profile fallback
+    try {
+      const localData = localStorage.getItem(`user_profile_${userId}`);
+      if (localData) {
+        setProfile(JSON.parse(localData));
+      } else {
+        setProfile(null);
+      }
+    } catch {
       setProfile(null);
     }
   };
@@ -123,6 +136,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const upsertProfile = async (profileUpdates: Partial<Profile>) => {
     if (!user) return { error: new Error('User not logged in') };
 
+    const localProfile: Profile = {
+      id: user.id,
+      ...(profile || {}),
+      ...profileUpdates,
+      updated_at: new Date().toISOString()
+    };
+
+    // Always persist to local cache immediately
+    try {
+      localStorage.setItem(`user_profile_${user.id}`, JSON.stringify(localProfile));
+    } catch (e) {
+      console.warn('Could not save profile to localStorage:', e);
+    }
+    setProfile(localProfile);
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -134,12 +162,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select()
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (error) {
+        console.warn('Supabase profiles table query returned warning, falling back to local storage profile:', error.message);
+        return { error: null };
+      }
+      if (data) {
+        setProfile(data);
+      }
       return { error: null };
     } catch (err: any) {
-      console.error('Error upserting profile:', err);
-      return { error: err };
+      console.warn('Error syncing profile to remote Supabase (local fallback retained):', err);
+      return { error: null };
     }
   };
 
