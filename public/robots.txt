@@ -8,4 +8,4 @@ Disallow: /saved
 Disallow: /settings
 
 # Canonical Sitemap
-Sitemap: https://keywordnews.live/sitemap.xml
+Sitemap: https://keywordnews.netlify.app/sitemap.xml

@@ -8,8 +8,8 @@ const rootDir = path.resolve(__dirname, '..');
 const distDir = path.resolve(rootDir, 'dist');
 const publicDir = path.resolve(rootDir, 'public');
 
-// Resolve SITE_URL
-const rawSiteUrl = process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://keywordnews.live';
+// Resolve SITE_URL with Netlify's automatic process.env.URL support
+const rawSiteUrl = process.env.SITE_URL || process.env.VITE_SITE_URL || process.env.URL || 'https://keywordnews.netlify.app';
 const siteUrl = rawSiteUrl.replace(/\/+$/, '');
 const currentDate = new Date().toISOString().split('T')[0];
 

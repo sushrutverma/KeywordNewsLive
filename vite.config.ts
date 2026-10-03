@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    'process.env.SITE_URL': JSON.stringify(process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://keywordnews.live'),
+    'process.env.SITE_URL': JSON.stringify(process.env.SITE_URL || process.env.VITE_SITE_URL || process.env.URL || 'https://keywordnews.netlify.app'),
   },
   server: {
     host: true,

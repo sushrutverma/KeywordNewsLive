@@ -5,8 +5,8 @@
  * Fallback domain uses TODO placeholder until custom production domain is fully verified.
  */
 
-// TODO: Replace fallback domain with production verified custom domain if not supplied via SITE_URL env
-export const DEFAULT_SITE_URL = 'https://keywordnews.live';
+// Production default fallback domain
+export const DEFAULT_SITE_URL = 'https://keywordnews.netlify.app';
 
 /**
  * Resolves the absolute site URL from environment variables or runtime location.
@@ -18,9 +18,12 @@ export function getSiteUrl(): string {
     return viteSiteUrl.replace(/\/+$/, '');
   }
 
-  // Check process.env.SITE_URL if defined via build
-  if (typeof process !== 'undefined' && process.env && process.env.SITE_URL) {
-    return process.env.SITE_URL.replace(/\/+$/, '');
+  // Check process.env.SITE_URL or Netlify's automatic process.env.URL
+  if (typeof process !== 'undefined' && process.env) {
+    const envUrl = process.env.SITE_URL || process.env.URL;
+    if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+      return envUrl.replace(/\/+$/, '');
+    }
   }
 
   // Runtime browser origin check
