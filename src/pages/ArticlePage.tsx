@@ -332,6 +332,11 @@ const ArticlePage = () => {
             layoutId={`image-${article.id}`}
             src={article.image}
             alt={article.title}
+            width={1200}
+            height={630}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
             className="w-full h-full object-cover"
           />
           

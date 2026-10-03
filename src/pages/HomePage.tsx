@@ -117,6 +117,7 @@ const HomePage = () => {
                   article={article} 
                   keyword={currentKeyword}
                   isFeatured={index === 0}
+                  priority={index < 2}
                 />
               </div>
             ))}

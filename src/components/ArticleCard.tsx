@@ -12,6 +12,7 @@ interface ArticleCardProps {
   article: Article;
   keyword?: string;
   isFeatured?: boolean;
+  priority?: boolean;
 }
 
 const DETECTED_TICKERS: { match: RegExp; label: string }[] = [
@@ -40,7 +41,7 @@ const getDetectedTicker = (title: string): string | null => {
   return null;
 };
 
-const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => {
+const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, priority }) => {
   const { savedArticles, saveArticle, removeFromSaved } = useNews();
   const [showSummary, setShowSummary] = useState(false);
   const [showRelated, setShowRelated] = useState(false);
@@ -199,12 +200,16 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured }) => 
       <div>
         <Link to={`/article/${article.id}`} className="block">
           {article.image && (
-            <div className={`w-full overflow-hidden bg-gray-100 dark:bg-zinc-800 ${isFeatured ? 'h-60 sm:h-72' : 'h-48'}`}>
+            <div className={`w-full overflow-hidden bg-gray-100 dark:bg-zinc-800 ${isFeatured ? 'h-60 sm:h-72' : 'h-48'} aspect-video`}>
               <img
                 src={article.image}
                 alt={article.title || 'Article image'}
+                width={isFeatured ? 800 : 480}
+                height={isFeatured ? 450 : 270}
                 className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                loading="lazy"
+                loading={isFeatured || priority ? 'eager' : 'lazy'}
+                fetchPriority={isFeatured || priority ? 'high' : 'low'}
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}

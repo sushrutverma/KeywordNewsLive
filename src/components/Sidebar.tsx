@@ -52,11 +52,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <Link to="/" onClick={onClose} className="block">
-              <img
-                src="/keyword-logo.png"
-                alt="Keyword"
-                className="h-8 w-auto object-contain dark:invert select-none"
-              />
+              <picture>
+                <source srcSet="/keyword-logo.webp" type="image/webp" />
+                <img
+                  src="/keyword-logo.png"
+                  alt="Keyword"
+                  width={140}
+                  height={32}
+                  className="h-8 w-auto object-contain dark:invert select-none"
+                />
+              </picture>
               <p className="text-[10px] text-gray-500 mt-1">Driven by you, Curated for you</p>
             </Link>
             <button
@@ -167,11 +172,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Logo Section */}
           <Link to="/" className="flex items-center px-1.5 py-3 mb-6 overflow-hidden group/logo">
             <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              <img
-                src="/keyword-logo.png"
-                alt="Keyword"
-                className="h-6 w-auto max-w-[32px] object-contain dark:invert select-none"
-              />
+              <picture>
+                <source srcSet="/keyword-logo.webp" type="image/webp" />
+                <img
+                  src="/keyword-logo.png"
+                  alt="Keyword"
+                  width={32}
+                  height={24}
+                  className="h-6 w-auto max-w-[32px] object-contain dark:invert select-none"
+                />
+              </picture>
             </div>
             <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               <span className="font-bold text-sm tracking-tight text-gray-900 dark:text-white">Keyword</span>

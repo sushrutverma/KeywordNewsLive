@@ -12,3 +12,7 @@ supabase/.temp/
 # Python cache
 __pycache__/
 *.pyc
+
+# Lighthouse audit outputs
+lighthouse-*.json
+

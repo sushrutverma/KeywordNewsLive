@@ -157,6 +157,9 @@ const SettingsPage = () => {
             <img
               src="/keyword-logo.png"
               alt="Keyword"
+              width={140}
+              height={32}
+              loading="lazy"
               className="h-8 w-auto object-contain dark:invert select-none"
             />
             <span className="ml-3 text-xs px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full font-bold">v1.0.0</span>
