@@ -5,6 +5,7 @@ import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 import { TrackedAsset, ASSET_CATALOG, DEFAULT_WATCHLIST_IDS, findMatchedAsset } from '../services/marketAssets';
 import { fetchQuotesForSymbols, fetchQuoteForSymbol } from '../services/marketService';
+import { supabase } from '../lib/supabase';
 
 interface NewsContextType {
   articles: Article[];
@@ -274,6 +275,54 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     }
   );
 
+  // Synchronize saved articles with Supabase when authenticated
+  useEffect(() => {
+    const fetchCloudSaved = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('saved_articles')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (!error && data && data.length > 0) {
+          const cloudArticles: Article[] = data.map((row: any) => ({
+            id: row.id,
+            title: row.title,
+            link: row.link || '',
+            pubDate: row.pub_date || '',
+            content: row.content || '',
+            image: row.image || undefined,
+            source: row.source || 'News'
+          }));
+
+          setSavedArticles(prev => {
+            const map = new Map<string, Article>();
+            prev.forEach(a => map.set(a.id, a));
+            cloudArticles.forEach(a => map.set(a.id, a));
+            return Array.from(map.values());
+          });
+        }
+      } catch (e) {
+        console.warn('Could not sync bookmarks from Supabase:', e);
+      }
+    };
+
+    fetchCloudSaved();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        fetchCloudSaved();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('savedArticles', JSON.stringify(savedArticles));
   }, [savedArticles]);
@@ -302,10 +351,33 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       }
       return [...prev, article];
     });
+
+    // Cloud sync to Supabase if logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('saved_articles').upsert({
+          id: article.id,
+          user_id: user.id,
+          title: article.title,
+          link: article.link,
+          pub_date: article.pubDate,
+          content: article.content,
+          image: article.image || null,
+          source: article.source
+        }).then();
+      }
+    }).catch(() => {});
   };
 
   const removeFromSaved = (articleId: string) => {
     setSavedArticles(prev => prev.filter(a => a.id !== articleId));
+
+    // Cloud sync removal to Supabase if logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('saved_articles').delete().match({ id: articleId, user_id: user.id }).then();
+      }
+    }).catch(() => {});
   };
 
   const toggleFollowTopic = (topicId: string) => {
