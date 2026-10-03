@@ -142,7 +142,7 @@ const OnboardingPage = () => {
               </div>
               {s < 3 && (
                 <div className={`h-1 flex-1 mx-2 rounded-full transition-colors duration-300 ${
-                  s < step ? 'bg-emerald-500' : 'bg-gray-250 dark:bg-zinc-800'
+                  s < step ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-zinc-800'
                 }`} />
               )}
             </div>
@@ -150,7 +150,7 @@ const OnboardingPage = () => {
         </div>
 
         {/* Wizard Main Container Card */}
-        <div className="glass-card p-8 sm:p-10 rounded-2xl shadow-xl border border-gray-250/30 dark:border-zinc-850/40 relative overflow-hidden min-h-[480px] flex flex-col justify-between">
+        <div className="glass-card p-8 sm:p-10 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-800 relative overflow-hidden min-h-[480px] flex flex-col justify-between">
           
           <AnimatePresence mode="wait" custom={direction}>
             {step === 1 && (
@@ -213,7 +213,7 @@ const OnboardingPage = () => {
                                 <div className={`p-2 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500'}`}>
                                   <IconComp className="w-4 h-4" />
                                 </div>
-                                <span className={`text-xs font-bold ${isSelected ? 'text-indigo-650 dark:text-indigo-400' : 'text-gray-800 dark:text-zinc-200'}`}>
+                                <span className={`text-xs font-bold ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-800 dark:text-zinc-200'}`}>
                                   {occ.name}
                                 </span>
                               </div>
@@ -226,7 +226,7 @@ const OnboardingPage = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-8 border-t border-gray-150/20 dark:border-zinc-900/40">
+                <div className="flex justify-end pt-8 border-t border-gray-200/50 dark:border-zinc-800/60">
                   <button
                     onClick={handleNext}
                     className="flex items-center px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-semibold shadow-md"
@@ -277,7 +277,7 @@ const OnboardingPage = () => {
                             </div>
                           </div>
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
-                            isSelected ? 'bg-indigo-650 border-indigo-650' : 'border-gray-300 dark:border-zinc-700'
+                            isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 dark:border-zinc-700'
                           }`}>
                             {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                           </div>
@@ -287,7 +287,7 @@ const OnboardingPage = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-8 border-t border-gray-150/20 dark:border-zinc-900/40">
+                <div className="flex justify-between pt-8 border-t border-gray-200/50 dark:border-zinc-800/60">
                   <button
                     onClick={handleBack}
                     className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200 text-sm font-semibold"
@@ -337,8 +337,8 @@ const OnboardingPage = () => {
                           onClick={() => theme === 'dark' && toggleTheme()}
                           className={`flex-1 py-3 px-4 border rounded-xl flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
                             theme === 'light'
-                              ? 'border-indigo-600 bg-indigo-600/5 text-indigo-650'
-                              : 'border-gray-250/50 dark:border-zinc-800 text-gray-500 bg-transparent hover:border-gray-300'
+                              ? 'border-indigo-600 bg-indigo-600/5 text-indigo-600'
+                              : 'border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 bg-transparent hover:border-gray-300'
                           }`}
                         >
                           <Sun className="w-4 h-4" />
@@ -349,8 +349,8 @@ const OnboardingPage = () => {
                           onClick={() => theme === 'light' && toggleTheme()}
                           className={`flex-1 py-3 px-4 border rounded-xl flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
                             theme === 'dark'
-                              ? 'border-indigo-400 bg-indigo-400/5 text-indigo-400'
-                              : 'border-gray-250/50 dark:border-zinc-800 text-gray-500 bg-transparent hover:border-gray-300'
+                              ? 'border-indigo-400 bg-indigo-400/10 text-indigo-300'
+                              : 'border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 bg-transparent hover:border-gray-300'
                           }`}
                         >
                           <Moon className="w-4 h-4" />
@@ -371,8 +371,8 @@ const OnboardingPage = () => {
                               onClick={() => toggleFollowTopic(topic.id)}
                               className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
                                 isSelected
-                                  ? 'border-indigo-650 bg-indigo-650/5 dark:border-indigo-400/30'
-                                  : 'border-gray-200/50 dark:border-zinc-800/40 hover:border-gray-300 bg-zinc-50/50 dark:bg-zinc-900/10'
+                                  ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 dark:border-indigo-400'
+                                  : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/90'
                               }`}
                             >
                               <span className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate pr-1">{topic.name}</span>
@@ -389,7 +389,7 @@ const OnboardingPage = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-8 border-t border-gray-150/20 dark:border-zinc-900/40">
+                <div className="flex justify-between pt-8 border-t border-gray-200/50 dark:border-zinc-800/60">
                   <button
                     onClick={handleBack}
                     disabled={submitting}

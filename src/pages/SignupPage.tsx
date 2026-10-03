@@ -85,9 +85,9 @@ const SignupPage = () => {
               key={s}
               className={`h-2 rounded-full transition-all duration-300 ${
                 s === step 
-                  ? 'w-10 bg-indigo-650 dark:bg-indigo-400' 
+                  ? 'w-10 bg-indigo-600 dark:bg-indigo-400' 
                   : s < step 
-                    ? 'w-2 bg-indigo-650/50 dark:bg-indigo-400/40' 
+                    ? 'w-2 bg-indigo-600/50 dark:bg-indigo-400/40' 
                     : 'w-2 bg-zinc-200 dark:bg-zinc-800'
               }`}
             />
@@ -95,7 +95,7 @@ const SignupPage = () => {
         </div>
 
         {/* Wizard Main Container Card */}
-        <div className="glass-card p-8 rounded-2xl shadow-xl border border-gray-250/30 dark:border-zinc-850/40 overflow-hidden relative min-h-[420px] flex flex-col justify-between">
+        <div className="glass-card p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-800 overflow-hidden relative min-h-[420px] flex flex-col justify-between">
           
           <AnimatePresence mode="wait" custom={direction}>
             {step === 1 && (
@@ -178,8 +178,8 @@ const SignupPage = () => {
                           onClick={() => toggleFollowTopic(topic.id)}
                           className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
                             isSelected
-                              ? 'border-indigo-650 bg-indigo-650/5 dark:border-indigo-400/30'
-                              : 'border-gray-200/50 dark:border-zinc-800/40 hover:border-gray-300 bg-zinc-50/50 dark:bg-zinc-900/10'
+                              ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 dark:border-indigo-400'
+                              : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/90'
                           }`}
                         >
                           <div className="truncate pr-2">
@@ -196,7 +196,7 @@ const SignupPage = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-6 border-t border-gray-150/20 dark:border-zinc-900/40">
+                <div className="flex justify-between pt-6 border-t border-gray-200/50 dark:border-zinc-800/60">
                   <button
                     onClick={handleBack}
                     className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200 text-sm font-semibold"
@@ -268,7 +268,7 @@ const SignupPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex justify-between pt-6 border-t border-gray-150/20 dark:border-zinc-900/40">
+                  <div className="flex justify-between pt-6 border-t border-gray-200/50 dark:border-zinc-800/60">
                     <button
                       onClick={handleBack}
                       disabled={loading}

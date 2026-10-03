@@ -66,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </Link>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-150 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400"
             >
               <X size={20} />
             </button>
@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="glass-card absolute bottom-full left-0 right-0 mb-2 p-4 rounded-xl shadow-xl z-50 border border-gray-250/20 dark:border-zinc-800/50"
+                  className="glass-card absolute bottom-full left-0 right-0 mb-2 p-4 rounded-xl shadow-xl z-50 border border-gray-200/60 dark:border-zinc-800/80"
                 >
                   <div className="text-sm">
                     <div className="font-semibold text-gray-800 dark:text-zinc-200">Developed by</div>
@@ -135,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* User Profile */}
-          <div className="pt-4 border-t border-gray-250/30 dark:border-zinc-900/60 flex items-center justify-between">
+          <div className="pt-4 border-t border-gray-200/60 dark:border-zinc-800/80 flex items-center justify-between">
             {user ? (
               <>
                 <div className="text-xs max-w-[150px]">
@@ -199,7 +199,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   `flex items-center px-2 py-2.5 rounded-xl transition-all duration-200 font-medium text-sm overflow-hidden ${
                     isActive
                       ? 'bg-primary/10 text-primary dark:bg-primary-dark/15 dark:text-primary-dark font-semibold'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-850/60 hover:text-gray-900 dark:hover:text-zinc-200'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/80 hover:text-gray-900 dark:hover:text-zinc-200'
                   }`
                 }
               >
@@ -223,7 +223,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               className={`flex items-center w-full px-2 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium overflow-hidden ${
                 showInfo
                   ? 'bg-primary/10 text-primary dark:bg-primary-dark/15 dark:text-primary-dark'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-850/60'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/80'
               }`}
             >
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
@@ -260,7 +260,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* User Profile */}
-          <div className="pt-3 border-t border-gray-200/60 dark:border-zinc-850/80 flex items-center overflow-hidden h-[54px]">
+          <div className="pt-3 border-t border-gray-200/60 dark:border-zinc-800/80 flex items-center overflow-hidden h-[54px]">
             {user ? (
               <>
                 <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/15 flex items-center justify-center shrink-0 text-primary dark:text-primary-dark font-semibold text-xs ml-0.5">

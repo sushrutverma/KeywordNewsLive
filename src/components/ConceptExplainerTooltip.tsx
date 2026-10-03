@@ -57,13 +57,13 @@ export const ConceptExplainerTooltip: FC<ConceptExplainerTooltipProps> = ({
       {/* Tooltip Content */}
       <div className="relative">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center text-indigo-650 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-indigo-500 dark:text-indigo-450" />
+          <div className="flex items-center text-indigo-600 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 mr-1 text-indigo-500 dark:text-indigo-400" />
             AI Concept Explainer
           </div>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-250 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
           >
             <X size={14} />
           </button>
@@ -79,11 +79,11 @@ export const ConceptExplainerTooltip: FC<ConceptExplainerTooltipProps> = ({
             <span className="text-[10px] text-gray-500 dark:text-gray-400">Defining...</span>
           </div>
         ) : tooltipState.error ? (
-          <div className="text-xs text-rose-500 dark:text-rose-450 py-1">
+          <div className="text-xs text-rose-500 dark:text-rose-400 py-1">
             {tooltipState.error}
           </div>
         ) : (
-          <p className="text-xs text-gray-650 dark:text-zinc-300 leading-relaxed font-sans font-medium">
+          <p className="text-xs text-gray-700 dark:text-zinc-200 leading-relaxed font-sans font-medium">
             {tooltipState.explanation}
           </p>
         )}

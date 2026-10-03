@@ -75,8 +75,8 @@ const SettingsPage = () => {
                   className="flex items-center justify-between p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
                 >
                   <div className="pr-4">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">{topic.name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{topic.description}</p>
+                    <h3 className="font-semibold text-gray-800 dark:text-zinc-100">{topic.name}</h3>
+                    <p className="text-xs text-gray-500 dark:text-zinc-300 mt-1">{topic.description}</p>
                   </div>
                   <div
                     className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer flex-shrink-0 transition-colors duration-250 ${
@@ -106,7 +106,7 @@ const SettingsPage = () => {
                 <div>
                   <span className="text-lg font-semibold">{source.name}</span>
                   {source.category && (
-                    <span className="ml-2 text-sm px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full">
+                    <span className="ml-2 text-xs px-2.5 py-1 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-200/60 dark:border-indigo-800/60 font-medium">
                       {source.category}
                     </span>
                   )}

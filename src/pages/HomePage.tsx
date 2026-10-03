@@ -33,17 +33,17 @@ const HomePage = () => {
       <h1 className="sr-only">Keyword – Driven by you, Curated for you</h1>
       {/* Horizontal Scrolling Topics Tab Bar */}
       <div className="mb-6 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex items-center space-x-1.5 pb-2 border-b border-gray-200/60 dark:border-zinc-800/60 min-w-max">
+        <div className="flex items-center space-x-2 pb-2.5 border-b border-gray-200/70 dark:border-zinc-800/80 min-w-max">
           {activeTabs.map((tab) => {
             const isActive = selectedTopicId === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setSelectedTopicId(tab.id)}
-                className={`relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 select-none outline-none ${
+                className={`relative px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 select-none outline-none border ${
                   isActive 
-                    ? 'text-white shadow-xs' 
-                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-gray-100/60 dark:bg-zinc-850/40 hover:bg-gray-200/60 dark:hover:bg-zinc-800/60'
+                    ? 'text-white border-transparent shadow-md shadow-indigo-500/25 dark:shadow-indigo-500/20' 
+                    : 'text-gray-700 dark:text-zinc-200 hover:text-gray-900 dark:hover:text-white bg-gray-100/80 dark:bg-zinc-900/90 hover:bg-gray-200/80 dark:hover:bg-zinc-800 border-gray-200/80 dark:border-zinc-800 shadow-2xs'
                 }`}
               >
                 {isActive && (

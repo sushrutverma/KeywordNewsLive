@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full max-w-sm flex items-center justify-between bg-gray-100/70 hover:bg-gray-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/70 border border-gray-200/80 dark:border-zinc-750/60 pl-3.5 pr-2.5 py-1.5 rounded-xl cursor-pointer transition-all duration-200 text-gray-500 dark:text-zinc-400 select-none group shadow-2xs hover:border-indigo-400/40 dark:hover:border-indigo-500/40"
+          className="w-full max-w-sm flex items-center justify-between bg-gray-100/70 hover:bg-gray-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/70 border border-gray-200/80 dark:border-zinc-700/60 pl-3.5 pr-2.5 py-1.5 rounded-xl cursor-pointer transition-all duration-200 text-gray-500 dark:text-zinc-400 select-none group shadow-2xs hover:border-indigo-400/40 dark:hover:border-indigo-500/40"
         >
           <div className="flex items-center space-x-2.5 min-w-0">
             <Search size={14} className="text-gray-400 group-hover:text-primary dark:group-hover:text-primary-dark transition-colors shrink-0" />

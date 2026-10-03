@@ -331,7 +331,7 @@ const ArticlePage = () => {
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200/60 dark:border-zinc-800/60">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-zinc-300 text-xs font-medium transition-colors"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-medium transition-colors"
           >
             <ArrowLeft size={15} />
             <span>Back</span>
@@ -395,15 +395,15 @@ const ArticlePage = () => {
                 <div className="p-6 md:p-8 border-b border-gray-200/50 dark:border-zinc-800/50">
                   {/* Article Meta */}
                   <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-dark font-medium">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary-dark/20 dark:text-indigo-300 border border-primary/20 dark:border-indigo-400/30 font-medium">
                       {article.source}
                     </span>
-                    <div className="flex items-center text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center text-gray-500 dark:text-zinc-300">
                       <Clock size={14} className="mr-1" />
                       <span>{formatArticleDate(article.pubDate)}</span>
                     </div>
                     {readingTime > 0 && (
-                      <div className="flex items-center text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center text-gray-500 dark:text-zinc-300">
                         <Eye size={14} className="mr-1" />
                         <span>{readingTime} min read</span>
                       </div>

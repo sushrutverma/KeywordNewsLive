@@ -138,10 +138,10 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
           <div className="p-5 sm:p-6 pb-2">
             {/* Meta & Badges Hierarchy */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2.5">
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 border border-gray-200/60 dark:border-zinc-700/60">
                 {article.source || 'News'}
               </span>
-              <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+              <span className="text-[11px] text-gray-400 dark:text-zinc-400">
                 {formatArticleDate(article.pubDate)}
               </span>
 
@@ -178,7 +178,7 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
 
             {/* Description */}
             {formattedContent && (
-              <p className="text-sm text-gray-600 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
+              <p className="text-sm text-gray-600 dark:text-zinc-300 line-clamp-2 leading-relaxed mb-4">
                 {highlightKeyword(formattedContent, keyword)}
               </p>
             )}
@@ -217,7 +217,7 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
                 e.stopPropagation();
                 setShowRelated(!showRelated);
               }}
-              className="whitespace-nowrap inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-zinc-300 transition-colors"
+              className="whitespace-nowrap inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 transition-colors"
             >
               <Layers size={11} className="text-gray-500" />
               <span>{showRelated ? 'Hide' : `+${relatedCount}`}</span>

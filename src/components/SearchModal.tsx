@@ -89,7 +89,7 @@ export const SearchModal = () => {
           className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-zinc-800/50 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden p-5 flex flex-col space-y-4"
         >
           {/* Search Input Box */}
-          <div className="flex items-center border border-gray-200 dark:border-zinc-850 bg-zinc-50 dark:bg-zinc-950/50 rounded-xl px-3 py-2">
+          <div className="flex items-center border border-gray-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 rounded-xl px-3 py-2">
             <Search className="text-gray-400 dark:text-zinc-500 mr-2 flex-shrink-0" size={18} />
             <input
               ref={inputRef}
@@ -190,7 +190,7 @@ export const SearchModal = () => {
                 <button
                   key={category}
                   onClick={() => handleSearchSubmit(category)}
-                  className="bg-zinc-50 dark:bg-zinc-950/20 hover:bg-zinc-100 dark:hover:bg-zinc-850 border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-600 dark:text-zinc-400 transition-colors"
+                  className="bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-700 dark:text-zinc-200 transition-colors"
                 >
                   {category}
                 </button>
@@ -199,7 +199,7 @@ export const SearchModal = () => {
           </div>
 
           {/* Help Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-150 dark:border-zinc-800 text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200/80 dark:border-zinc-800 text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
             <span>Click outside or press <kbd className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded border border-gray-200 dark:border-zinc-700">Esc</kbd> to exit</span>
             <button
               onClick={() => setIsSearchOpen(false)}

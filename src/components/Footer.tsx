@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 border-t border-gray-200/60 dark:border-zinc-850 pt-10 pb-12 w-full text-xs text-gray-500 dark:text-zinc-400">
+    <footer className="mt-16 border-t border-gray-200/60 dark:border-zinc-800 pt-10 pb-12 w-full text-xs text-gray-500 dark:text-zinc-400">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Main Footer Grid */}
