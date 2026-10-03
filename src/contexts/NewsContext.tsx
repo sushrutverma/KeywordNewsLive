@@ -339,24 +339,22 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     localStorage.setItem('savedArticles', JSON.stringify(savedArticles));
   }, [savedArticles]);
 
-  const refreshNews = async () => {
+  const refreshNews = useCallback(async () => {
     setIsProgressiveLoading(true);
     try {
       await refetch();
     } finally {
       setIsProgressiveLoading(false);
     }
-  };
+  }, [refetch]);
 
-  const searchArticles = (keyword: string) => {
+  const searchNews = useCallback((keyword: string) => {
     setCurrentKeyword(keyword);
-  };
+  }, []);
 
-  const searchNews = (keyword: string) => {
-    setCurrentKeyword(keyword);
-  };
+  const searchArticles = searchNews;
 
-  const saveArticle = (article: Article) => {
+  const saveArticle = useCallback((article: Article) => {
     setSavedArticles(prev => {
       if (prev.some(a => a.id === article.id)) {
         return prev;
@@ -379,9 +377,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         }).then();
       }
     }).catch(() => {});
-  };
+  }, []);
 
-  const removeFromSaved = (articleId: string) => {
+  const removeFromSaved = useCallback((articleId: string) => {
     setSavedArticles(prev => prev.filter(a => a.id !== articleId));
 
     // Cloud sync removal to Supabase if logged in
@@ -390,9 +388,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         supabase.from('saved_articles').delete().match({ id: articleId, user_id: user.id }).then();
       }
     }).catch(() => {});
-  };
+  }, []);
 
-  const toggleFollowTopic = (topicId: string) => {
+  const toggleFollowTopic = useCallback((topicId: string) => {
     setFollowedTopics(prev => {
       if (prev.includes(topicId)) {
         if (prev.length <= 1) return prev; // Keep at least one followed topic
@@ -400,9 +398,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       }
       return [...prev, topicId];
     });
-  };
+  }, []);
 
-  const toggleTrackAsset = (assetOrId: string | TrackedAsset) => {
+  const toggleTrackAsset = useCallback((assetOrId: string | TrackedAsset) => {
     if (typeof assetOrId === 'object' && assetOrId !== null) {
       const asset = assetOrId;
       setTrackedAssets(prev => {
@@ -429,9 +427,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       }
       return prev;
     });
-  };
+  }, []);
 
-  const addCustomTrackedAsset = (name: string, keyword: string, category?: TrackedAsset['category']) => {
+  const addCustomTrackedAsset = useCallback((name: string, keyword: string, category?: TrackedAsset['category']) => {
     if (!name.trim()) return;
     const cleanName = name.trim();
     const cleanKw = keyword.trim() || cleanName;
@@ -447,51 +445,77 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       keywords: [cleanName.toLowerCase(), cleanKw.toLowerCase()]
     };
     setTrackedAssets(prev => [newAsset, ...prev]);
-  };
+  }, []);
 
-  const removeTrackedAsset = (assetId: string) => {
+  const removeTrackedAsset = useCallback((assetId: string) => {
     setTrackedAssets(prev => {
       if (prev.length <= 1) return prev;
       return prev.filter(a => a.id !== assetId);
     });
-  };
+  }, []);
 
-  const resetWatchlist = () => {
+  const resetWatchlist = useCallback(() => {
     const defaults = ASSET_CATALOG.filter(asset => DEFAULT_WATCHLIST_IDS.includes(asset.id));
     setTrackedAssets(defaults);
     setTimeout(() => {
       refreshTrackedQuotes();
     }, 100);
-  };
+  }, [refreshTrackedQuotes]);
+
+  const contextValue = useMemo(() => ({
+    articles,
+    filteredArticles,
+    isLoading,
+    isError,
+    refreshNews,
+    searchArticles,
+    searchNews,
+    savedArticles,
+    saveArticle,
+    removeFromSaved,
+    currentKeyword,
+    isProgressiveLoading,
+    isSearchOpen,
+    setIsSearchOpen,
+    followedTopics,
+    toggleFollowTopic,
+    selectedTopicId,
+    setSelectedTopicId,
+    trackedAssets,
+    toggleTrackAsset,
+    addCustomTrackedAsset,
+    removeTrackedAsset,
+    resetWatchlist,
+    refreshTrackedQuotes,
+    isRefreshingQuotes
+  }), [
+    articles,
+    filteredArticles,
+    isLoading,
+    isError,
+    refreshNews,
+    searchArticles,
+    searchNews,
+    savedArticles,
+    saveArticle,
+    removeFromSaved,
+    currentKeyword,
+    isProgressiveLoading,
+    isSearchOpen,
+    followedTopics,
+    toggleFollowTopic,
+    selectedTopicId,
+    trackedAssets,
+    toggleTrackAsset,
+    addCustomTrackedAsset,
+    removeTrackedAsset,
+    resetWatchlist,
+    refreshTrackedQuotes,
+    isRefreshingQuotes
+  ]);
 
   return (
-    <NewsContext.Provider value={{
-      articles,
-      filteredArticles,
-      isLoading,
-      isError,
-      refreshNews,
-      searchArticles,
-      searchNews,
-      savedArticles,
-      saveArticle,
-      removeFromSaved,
-      currentKeyword,
-      isProgressiveLoading,
-      isSearchOpen,
-      setIsSearchOpen,
-      followedTopics,
-      toggleFollowTopic,
-      selectedTopicId,
-      setSelectedTopicId,
-      trackedAssets,
-      toggleTrackAsset,
-      addCustomTrackedAsset,
-      removeTrackedAsset,
-      resetWatchlist,
-      refreshTrackedQuotes,
-      isRefreshingQuotes
-    }}>
+    <NewsContext.Provider value={contextValue}>
       {children}
     </NewsContext.Provider>
   );

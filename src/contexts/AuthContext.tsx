@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     // 1. Immediately hydrate from local cache if not yet set
     try {
       const localData = localStorage.getItem(`user_profile_${userId}`) || localStorage.getItem('user_profile_data');
@@ -103,13 +103,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return null;
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) {
       await fetchProfile(user.id);
     }
-  };
+  }, [user, fetchProfile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -161,18 +161,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile]);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
     });
 
     return { error };
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -191,9 +191,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchProfile]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
     } catch (e) {
@@ -203,18 +203,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateDurationFilter = async (duration: string) => {
+  const updateDurationFilter = useCallback(async (duration: string) => {
     if (!user) return;
     
     await supabase
       .from('profiles')
       .update({ article_duration_filter: duration })
       .eq('id', user.id);
-  };
+  }, [user]);
 
-  const upsertProfile = async (profileUpdates: Partial<Profile>) => {
+  const upsertProfile = useCallback(async (profileUpdates: Partial<Profile>) => {
     if (!user) return { error: new Error('User not logged in') };
 
     const localProfile: Profile = {
@@ -255,21 +255,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Error syncing profile to remote Supabase (local fallback retained):', err);
       return { error: null };
     }
-  };
+  }, [user, profile]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    profile,
+    loading,
+    signUp,
+    signIn,
+    signOut,
+    logout: signOut,
+    updateDurationFilter,
+    upsertProfile,
+    refreshProfile,
+  }), [user, profile, loading, signUp, signIn, signOut, updateDurationFilter, upsertProfile, refreshProfile]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      profile,
-      loading,
-      signUp,
-      signIn,
-      signOut,
-      logout: signOut,
-      updateDurationFilter,
-      upsertProfile,
-      refreshProfile,
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
