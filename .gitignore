@@ -15,4 +15,5 @@ __pycache__/
 
 # Lighthouse audit outputs
 lighthouse-*.json
+*.tsbuildinfo
 

@@ -10,14 +10,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [showInfo, setShowInfo] = useState(false);
 
   // Render sidebar regardless of authentication state.
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to sign out?')) {
-      logout();
+      signOut();
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, BookOpen, Laptop, GraduationCap, Globe, Clock, CheckCircle2, User } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, BookOpen, Laptop, GraduationCap, Globe, Clock, CheckCircle2, User, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNews } from '../contexts/NewsContext';
@@ -30,7 +30,7 @@ const OnboardingPage = () => {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { upsertProfile, profile } = useAuth();
+  const { upsertProfile, profile, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { followedTopics, toggleFollowTopic } = useNews();
   const navigate = useNavigate();
@@ -76,14 +76,23 @@ const OnboardingPage = () => {
     setError('');
 
     try {
-      const { error: upsertError } = await upsertProfile({
-        full_name: fullName,
-        occupation: selectedOccupation,
-        reading_goal: selectedGoal,
-        followed_topics: followedTopics
-      });
+      if (user) {
+        const { error: upsertError } = await upsertProfile({
+          full_name: fullName,
+          occupation: selectedOccupation,
+          reading_goal: selectedGoal,
+          followed_topics: followedTopics
+        });
 
-      if (upsertError) throw upsertError;
+        if (upsertError) throw upsertError;
+      } else {
+        localStorage.setItem('guest_profile', JSON.stringify({
+          full_name: fullName,
+          occupation: selectedOccupation,
+          reading_goal: selectedGoal,
+          followed_topics: followedTopics
+        }));
+      }
       navigate('/');
     } catch (err: any) {
       setError(err?.message || 'Failed to save profile. Please try again.');
