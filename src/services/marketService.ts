@@ -13,6 +13,18 @@ export interface MarketTickerItem {
   formattedChange: string;
 }
 
+export interface AssetQuote {
+  symbol: string;
+  price: number;
+  change: number;
+  percentChange: number;
+  isPositive: boolean;
+  currency: string;
+  formattedPrice: string;
+  formattedChange: string;
+  timestamp: number;
+}
+
 const MARKET_SYMBOLS: Array<{ symbol: string; label: string; unit?: string; prefix?: string }> = [
   { symbol: '^BSESN', label: 'SENSEX', prefix: '₹' },
   { symbol: '^NSEI', label: 'NIFTY 50', prefix: '₹' },
@@ -25,24 +37,141 @@ const MARKET_SYMBOLS: Array<{ symbol: string; label: string; unit?: string; pref
 
 const CACHE_KEY = 'market_ticker_cache';
 const CACHE_TIMESTAMP_KEY = 'market_ticker_timestamp';
+const QUOTE_CACHE_KEY_PREFIX = 'asset_quote_cache_';
 const CACHE_DURATION = 60 * 1000; // 60 seconds
 
-const formatNumber = (num: number, decimals = 2): string => {
-  return num.toLocaleString('en-US', {
+// In-memory quote cache
+const memoryQuoteCache = new Map<string, AssetQuote>();
+
+export const formatNumber = (num: number, decimals = 2, isINR = false): string => {
+  if (isNaN(num)) return '0.00';
+  const locale = isINR ? 'en-IN' : 'en-US';
+  return num.toLocaleString(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
   });
 };
 
 export const INITIAL_MARKET_DATA: MarketTickerItem[] = [
-  { symbol: '^BSESN', label: 'SENSEX', price: 73895.74, change: -932.46, changePercent: -1.25, isPositive: false, formattedPrice: '₹73,895.74', formattedChange: '-1.25%' },
-  { symbol: '^NSEI', label: 'NIFTY 50', price: 23140.50, change: -306.30, changePercent: -1.31, isPositive: false, formattedPrice: '₹23,140.50', formattedChange: '-1.31%' },
-  { symbol: 'INR=X', label: 'USD/INR', price: 95.80, change: -0.14, changePercent: -0.15, isPositive: false, formattedPrice: '₹95.80', formattedChange: '-0.15%' },
-  { symbol: 'BZ=F', label: 'BRENT CRUDE', price: 97.18, change: -3.04, changePercent: -3.03, isPositive: false, unit: '$/bbl', formattedPrice: '$97.18', formattedChange: '-3.03%' },
-  { symbol: 'GC=F', label: 'GOLD', price: 4329.40, change: 31.40, changePercent: 0.73, isPositive: true, unit: '$/oz', formattedPrice: '$4,329.40', formattedChange: '+0.73%' },
-  { symbol: '^GSPC', label: 'S&P 500', price: 7735.66, change: 31.53, changePercent: 0.41, isPositive: true, formattedPrice: '7,735.66', formattedChange: '+0.41%' },
-  { symbol: 'BTC-USD', label: 'BITCOIN', price: 83919.30, change: -458.82, changePercent: -0.54, isPositive: false, formattedPrice: '$83,919.30', formattedChange: '-0.54%' }
+  { symbol: '^BSESN', label: 'SENSEX', price: 71909.70, change: -569.40, changePercent: -0.79, isPositive: false, formattedPrice: '₹71,909.70', formattedChange: '-0.79%' },
+  { symbol: '^NSEI', label: 'NIFTY 50', price: 22421.95, change: -198.50, changePercent: -0.88, isPositive: false, formattedPrice: '₹22,421.95', formattedChange: '-0.88%' },
+  { symbol: 'INR=X', label: 'USD/INR', price: 86.30, change: 0.12, changePercent: 0.14, isPositive: true, formattedPrice: '₹86.30', formattedChange: '+0.14%' },
+  { symbol: 'BZ=F', label: 'BRENT CRUDE', price: 100.85, change: 2.82, changePercent: 2.88, isPositive: true, unit: '$/bbl', formattedPrice: '$100.85', formattedChange: '+2.88%' },
+  { symbol: 'GC=F', label: 'GOLD', price: 4197.90, change: 11.20, changePercent: 0.27, isPositive: true, unit: '$/oz', formattedPrice: '$4,197.90', formattedChange: '+0.27%' },
+  { symbol: '^GSPC', label: 'S&P 500', price: 7649.36, change: -2.18, changePercent: -0.03, isPositive: false, formattedPrice: '7,649.36', formattedChange: '-0.03%' },
+  { symbol: 'BTC-USD', label: 'BITCOIN', price: 84376.69, change: 810.35, changePercent: 0.97, isPositive: true, formattedPrice: '$84,376.69', formattedChange: '+0.97%' }
 ];
+
+/**
+ * Fetch a single asset quote via Yahoo Finance chart API through Supabase proxy
+ */
+export const fetchQuoteForSymbol = async (rawSymbol: string): Promise<AssetQuote | null> => {
+  if (!rawSymbol || !rawSymbol.trim()) return null;
+  const symbol = rawSymbol.trim().toUpperCase();
+
+  // Check memory cache
+  const cachedMem = memoryQuoteCache.get(symbol);
+  if (cachedMem && (Date.now() - cachedMem.timestamp < CACHE_DURATION)) {
+    return cachedMem;
+  }
+
+  // Check localStorage cache
+  try {
+    const cachedLocal = localStorage.getItem(`${QUOTE_CACHE_KEY_PREFIX}${symbol}`);
+    if (cachedLocal) {
+      const parsed: AssetQuote = JSON.parse(cachedLocal);
+      if (parsed && (Date.now() - parsed.timestamp < CACHE_DURATION)) {
+        memoryQuoteCache.set(symbol, parsed);
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore localStorage parse error
+  }
+
+  try {
+    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+    const proxyUrl = `${SUPABASE_URL}/functions/v1/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+
+    const res = await fetch(proxyUrl, {
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) return null;
+    const json = await res.json();
+    const meta = json?.chart?.result?.[0]?.meta;
+    if (!meta || typeof meta.regularMarketPrice !== 'number') return null;
+
+    const price = meta.regularMarketPrice;
+    const prevClose = meta.chartPreviousClose || meta.previousClose || price;
+    const change = price - prevClose;
+    const rawPercent = typeof meta.regularMarketChangePercent === 'number'
+      ? meta.regularMarketChangePercent
+      : (prevClose !== 0 ? (change / prevClose) * 100 : 0);
+    const percentChange = Number(rawPercent.toFixed(2));
+    const isPositive = percentChange >= 0;
+
+    const currency = (meta.currency || '').toUpperCase();
+    const isIndian = currency === 'INR' || symbol.endsWith('.NS') || symbol.endsWith('.BO') || symbol === '^NSEI' || symbol === '^BSESN' || symbol === '^NSEBANK';
+    const prefix = isIndian ? '₹' : (currency === 'USD' || symbol.includes('USD') || symbol === 'GC=F' || symbol === 'CL=F' ? '$' : '');
+
+    const decimals = (price > 100 || isIndian) ? 2 : (price < 1 ? 4 : 2);
+    const formattedPrice = `${prefix}${formatNumber(price, decimals, isIndian)}`;
+    const formattedChange = `${isPositive ? '+' : ''}${formatNumber(percentChange, 2)}%`;
+
+    const quote: AssetQuote = {
+      symbol,
+      price,
+      change,
+      percentChange,
+      isPositive,
+      currency,
+      formattedPrice,
+      formattedChange,
+      timestamp: Date.now()
+    };
+
+    memoryQuoteCache.set(symbol, quote);
+    try {
+      localStorage.setItem(`${QUOTE_CACHE_KEY_PREFIX}${symbol}`, JSON.stringify(quote));
+    } catch {
+      // Ignore localStorage write error
+    }
+
+    return quote;
+  } catch (err) {
+    console.warn(`[marketService] Failed to fetch quote for ${symbol}:`, err);
+    return null;
+  }
+};
+
+/**
+ * Batch fetch quotes for multiple symbols concurrently
+ */
+export const fetchQuotesForSymbols = async (symbols: string[]): Promise<Map<string, AssetQuote>> => {
+  const uniqueSymbols = Array.from(new Set(symbols.map(s => s.trim().toUpperCase()).filter(Boolean)));
+  const resultsMap = new Map<string, AssetQuote>();
+
+  if (uniqueSymbols.length === 0) return resultsMap;
+
+  // Split into fast parallel fetches
+  const promises = uniqueSymbols.map(async (sym) => {
+    const quote = await fetchQuoteForSymbol(sym);
+    if (quote) {
+      resultsMap.set(sym, quote);
+    }
+  });
+
+  await Promise.allSettled(promises);
+  return resultsMap;
+};
 
 export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
   // Check local cache first
@@ -61,44 +190,19 @@ export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
 
   const promises = MARKET_SYMBOLS.map(async (item): Promise<MarketTickerItem | null> => {
     try {
-      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.symbol)}?interval=1d&range=1d`;
-      const proxyUrl = `${SUPABASE_URL}/functions/v1/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
-      
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 6000);
-
-      const res = await fetch(proxyUrl, {
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        signal: controller.signal
-      });
-      clearTimeout(timer);
-
-      if (!res.ok) return null;
-      const json = await res.json();
-      const meta = json?.chart?.result?.[0]?.meta;
-      if (!meta || typeof meta.regularMarketPrice !== 'number') return null;
-
-      const price = meta.regularMarketPrice;
-      const prevClose = meta.chartPreviousClose || meta.previousClose || price;
-      const change = price - prevClose;
-      const changePercent = prevClose !== 0 ? (change / prevClose) * 100 : 0;
-      const isPositive = change >= 0;
-
-      const prefix = item.prefix || '';
-      const decimals = item.symbol === 'INR=X' ? 2 : (price > 1000 ? 2 : 2);
+      const quote = await fetchQuoteForSymbol(item.symbol);
+      if (!quote) return null;
 
       return {
         symbol: item.symbol,
         label: item.label,
-        price,
-        change,
-        changePercent,
-        isPositive,
+        price: quote.price,
+        change: quote.change,
+        changePercent: quote.percentChange,
+        isPositive: quote.isPositive,
         unit: item.unit,
-        formattedPrice: `${prefix}${formatNumber(price, decimals)}`,
-        formattedChange: `${isPositive ? '+' : ''}${formatNumber(changePercent, 2)}%`
+        formattedPrice: quote.formattedPrice,
+        formattedChange: quote.formattedChange
       };
     } catch {
       return null;
@@ -134,3 +238,4 @@ export const fetchMarketData = async (): Promise<MarketTickerItem[]> => {
 
   return INITIAL_MARKET_DATA;
 };
+

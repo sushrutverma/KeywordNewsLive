@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback, useRef } from 'react';
 import { useQuery } from 'react-query';
 import { fetchNewsProgressively, interleaveArticles, clusterArticles } from '../services/newsService';
 import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 import { TrackedAsset, ASSET_CATALOG, DEFAULT_WATCHLIST_IDS, findMatchedAsset } from '../services/marketAssets';
+import { fetchQuotesForSymbols, fetchQuoteForSymbol } from '../services/marketService';
 
 interface NewsContextType {
   articles: Article[];
@@ -29,6 +30,8 @@ interface NewsContextType {
   addCustomTrackedAsset: (name: string, keyword: string, category?: TrackedAsset['category']) => void;
   removeTrackedAsset: (assetId: string) => void;
   resetWatchlist: () => void;
+  refreshTrackedQuotes: () => Promise<void>;
+  isRefreshingQuotes: boolean;
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -86,8 +89,14 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   const [selectedTopicId, setSelectedTopicId] = useState<string>('daily-news');
 
   // Watchlist & Tracked Assets state
+  const WATCHLIST_STORAGE_KEY = 'userWatchlist_v3';
   const [trackedAssets, setTrackedAssets] = useState<TrackedAsset[]>(() => {
-    const saved = localStorage.getItem('userWatchlist');
+    // Purge legacy stale watchlist cache if present
+    if (localStorage.getItem('userWatchlist')) {
+      localStorage.removeItem('userWatchlist');
+    }
+
+    const saved = localStorage.getItem(WATCHLIST_STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -101,8 +110,57 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     return ASSET_CATALOG.filter(asset => DEFAULT_WATCHLIST_IDS.includes(asset.id));
   });
 
+  const [isRefreshingQuotes, setIsRefreshingQuotes] = useState(false);
+  const trackedAssetsRef = useRef(trackedAssets);
   useEffect(() => {
-    localStorage.setItem('userWatchlist', JSON.stringify(trackedAssets));
+    trackedAssetsRef.current = trackedAssets;
+  }, [trackedAssets]);
+
+  // Synchronize live quotes for tracked assets
+  const refreshTrackedQuotes = useCallback(async () => {
+    const currentAssets = trackedAssetsRef.current;
+    if (!currentAssets || currentAssets.length === 0) return;
+    const symbols = currentAssets.map(a => a.symbol).filter(Boolean);
+    if (symbols.length === 0) return;
+
+    setIsRefreshingQuotes(true);
+    try {
+      const quotesMap = await fetchQuotesForSymbols(symbols);
+      if (quotesMap.size > 0) {
+        setTrackedAssets(prev => {
+          let hasDiff = false;
+          const updated = prev.map(asset => {
+            const live = quotesMap.get(asset.symbol.toUpperCase());
+            if (live && (asset.price !== live.formattedPrice || asset.percentChange !== live.percentChange)) {
+              hasDiff = true;
+              return {
+                ...asset,
+                price: live.formattedPrice,
+                change: live.formattedChange,
+                percentChange: live.percentChange
+              };
+            }
+            return asset;
+          });
+          return hasDiff ? updated : prev;
+        });
+      }
+    } catch (err) {
+      console.warn('[NewsContext] Failed to refresh quotes for tracked assets:', err);
+    } finally {
+      setIsRefreshingQuotes(false);
+    }
+  }, []);
+
+  // Fetch live prices on mount and periodically every 60s
+  useEffect(() => {
+    refreshTrackedQuotes();
+    const interval = setInterval(refreshTrackedQuotes, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [refreshTrackedQuotes]);
+
+  useEffect(() => {
+    localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(trackedAssets));
   }, [trackedAssets]);
 
   // Fast mapping from source name to its topic category
@@ -317,6 +375,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
   const resetWatchlist = () => {
     const defaults = ASSET_CATALOG.filter(asset => DEFAULT_WATCHLIST_IDS.includes(asset.id));
     setTrackedAssets(defaults);
+    setTimeout(() => {
+      refreshTrackedQuotes();
+    }, 100);
   };
 
   return (
@@ -343,7 +404,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
       toggleTrackAsset,
       addCustomTrackedAsset,
       removeTrackedAsset,
-      resetWatchlist
+      resetWatchlist,
+      refreshTrackedQuotes,
+      isRefreshingQuotes
     }}>
       {children}
     </NewsContext.Provider>

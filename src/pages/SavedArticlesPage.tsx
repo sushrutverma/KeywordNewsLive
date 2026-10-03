@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useNews } from '../contexts/NewsContext';
 import ArticleCard from '../components/ArticleCard';
 import { Bookmark, Trash2, Compass } from 'lucide-react';
+import SEOHead from '../components/SEOHead';
 
 const SavedArticlesPage = () => {
   const { savedArticles, removeFromSaved } = useNews();
@@ -15,6 +16,12 @@ const SavedArticlesPage = () => {
 
   return (
     <div className="flex-1 min-h-0">
+      <SEOHead
+        title="Saved Articles | Keyword"
+        description="Access and manage your saved and bookmarked news articles."
+        canonicalPath="/saved"
+        noindex={true}
+      />
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}

@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNews } from '../contexts/NewsContext';
 import { topics } from '../services/newsSources';
+import SEOHead from '../components/SEOHead';
 
 const OCCUPATIONS = [
   { id: 'UPSC Aspirant', name: 'UPSC / BPSC Aspirant', icon: BookOpen, desc: 'Focus heavily on Government policy, Budget, and Editorials.' },
@@ -108,6 +109,12 @@ const OnboardingPage = () => {
 
   return (
     <div className="min-h-[calc(100vh-140px)] flex items-center justify-center px-4 bg-transparent select-none">
+      <SEOHead
+        title="Account Setup & Preferences | Keyword"
+        description="Configure your reading preferences, interests, and topic alerts."
+        canonicalPath="/onboarding"
+        noindex={true}
+      />
       <div className="w-full max-w-2xl">
         
         {/* Step Indicator Progress Bar */}

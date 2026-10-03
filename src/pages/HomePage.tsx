@@ -6,6 +6,7 @@ import ArticleCard from '../components/ArticleCard';
 import { ArticleCardSkeleton } from '../components/ArticleSkeleton';
 import MarketPulseRibbon from '../components/MarketPulseRibbon';
 import { AlertCircle } from 'lucide-react';
+import SEOHead from '../components/SEOHead';
 
 const HomePage = () => {
   const { 
@@ -25,6 +26,12 @@ const HomePage = () => {
   
   return (
     <div className="flex-1 min-h-0">
+      <SEOHead
+        title={currentKeyword ? `${currentKeyword} News – Keyword` : 'Keyword – Driven by you, Curated for you'}
+        description="Real-time multi-source AI news intelligence, financial pulse, and unbiased story clustering."
+        canonicalPath="/"
+        noindex={false}
+      />
       {/* Horizontal Scrolling Topics Tab Bar */}
       <div className="mb-6 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="flex items-center space-x-1.5 pb-2 border-b border-gray-200/60 dark:border-zinc-800/60 min-w-max">

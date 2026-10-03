@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import SEOHead from '../components/SEOHead';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -30,6 +31,12 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-transparent">
+      <SEOHead
+        title="Sign In | Keyword"
+        description="Sign in to your Keyword account to manage topics, saved articles, and preferences."
+        canonicalPath="/login"
+        noindex={true}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

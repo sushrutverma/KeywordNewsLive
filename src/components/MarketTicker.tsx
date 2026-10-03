@@ -4,7 +4,6 @@ import { fetchMarketData, MarketTickerItem, INITIAL_MARKET_DATA } from '../servi
 
 export const MarketTicker: FC = () => {
   const [data, setData] = useState<MarketTickerItem[]>(INITIAL_MARKET_DATA);
-  const [isHovered, setIsHovered] = useState(false);
 
   const loadMarket = async () => {
     try {
@@ -25,14 +24,12 @@ export const MarketTicker: FC = () => {
   }, []);
 
   const currentItems = data.length > 0 ? data : INITIAL_MARKET_DATA;
-  // Duplicate the items array for a seamless infinite scroll loop
-  const tickerItems = [...currentItems, ...currentItems];
+  // Repeat items for seamless infinite scroll on any display width
+  const tickerItems = [...currentItems, ...currentItems, ...currentItems];
 
   return (
     <div 
-      className="w-full mb-5 overflow-hidden rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 glass-card text-xs select-none relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="w-full mb-5 overflow-hidden rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 glass-card text-xs select-none relative group"
     >
       <div className="flex items-center">
         {/* Static Left Badge */}
@@ -51,36 +48,37 @@ export const MarketTicker: FC = () => {
           <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-white/80 dark:from-zinc-900/80 to-transparent pointer-events-none" />
 
           <div 
-            className={`flex items-center gap-8 py-2.5 whitespace-nowrap will-change-transform ${
-              isHovered ? 'animate-none' : 'animate-ticker'
-            }`}
+            className="flex items-center gap-8 py-2.5 whitespace-nowrap will-change-transform animate-ticker group-hover:[animation-play-state:paused]"
             style={{
-              animationDuration: '32s',
+              animationDuration: '38s',
               animationTimingFunction: 'linear',
               animationIterationCount: 'infinite'
             }}
           >
-            {tickerItems.map((item, idx) => (
-              <div key={`${item.symbol}-${idx}`} className="inline-flex items-center gap-2">
-                <span className="font-semibold text-gray-800 dark:text-zinc-200 tracking-tight text-[11px]">
-                  {item.label}
-                </span>
-                <span className="font-mono text-gray-900 dark:text-zinc-100 font-medium text-[11px]">
-                  {item.formattedPrice}
-                  {item.unit && <span className="text-[10px] text-gray-400 dark:text-zinc-500 ml-0.5">{item.unit}</span>}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-0.5 font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
-                    item.isPositive
-                      ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10'
-                      : 'text-rose-700 dark:text-rose-400 bg-rose-500/10'
-                  }`}
-                >
-                  {item.isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                  {item.formattedChange}
-                </span>
-              </div>
-            ))}
+            {tickerItems.map((item, idx) => {
+              const cleanUnit = item.unit ? item.unit.replace(/^[$₹/]/, '') : '';
+              return (
+                <div key={`${item.symbol}-${idx}`} className="inline-flex items-center gap-2">
+                  <span className="font-semibold text-gray-800 dark:text-zinc-200 tracking-tight text-[11px]">
+                    {item.label}
+                  </span>
+                  <span className="font-mono text-gray-900 dark:text-zinc-100 font-medium text-[11px]">
+                    {item.formattedPrice}
+                    {cleanUnit && <span className="text-[10px] text-gray-400 dark:text-zinc-500 ml-0.5">/{cleanUnit}</span>}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-0.5 font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                      item.isPositive
+                        ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10'
+                        : 'text-rose-700 dark:text-rose-400 bg-rose-500/10'
+                    }`}
+                  >
+                    {item.isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                    {item.formattedChange}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

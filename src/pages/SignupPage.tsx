@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNews } from '../contexts/NewsContext';
 import { topics } from '../services/newsSources';
+import SEOHead from '../components/SEOHead';
 
 const SignupPage = () => {
   const [step, setStep] = useState(1);
@@ -68,6 +69,12 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 bg-transparent select-none">
+      <SEOHead
+        title="Sign Up | Keyword"
+        description="Create your Keyword account for personalized news curation and market analysis."
+        canonicalPath="/signup"
+        noindex={true}
+      />
       <div className="w-full max-w-lg">
         {/* Step Indicator Dots */}
         <div className="flex justify-center space-x-2.5 mb-8">

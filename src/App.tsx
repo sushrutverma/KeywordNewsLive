@@ -1,14 +1,24 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
-import HomePage from './pages/HomePage';
-import ArticlePage from './pages/ArticlePage';
-import SavedArticlesPage from './pages/SavedArticlesPage';
-import SettingsPage from './pages/SettingsPage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import OnboardingPage from './pages/OnboardingPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ArticlePage = lazy(() => import('./pages/ArticlePage'));
+const SavedArticlesPage = lazy(() => import('./pages/SavedArticlesPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+const PageLoader = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[40vh] p-8">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+      <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">Loading page...</span>
+    </div>
+  </div>
+);
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { MarketTicker } from './components/MarketTicker';
@@ -109,6 +119,45 @@ function AppContent() {
               <MarketTicker />
             </div>
             <div className="flex-1">
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/login" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <LoginPage />} />
+                  <Route path="/signup" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <SignupPage />} />
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <OnboardingPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/article/:id" element={<ArticlePage />} />
+                  <Route
+                    path="/saved"
+                    element={
+                      <ProtectedRoute>
+                        <SavedArticlesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center p-4">
+            <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/login" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <LoginPage />} />
                 <Route path="/signup" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <SignupPage />} />
@@ -120,41 +169,10 @@ function AppContent() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/" element={<HomePage />} />
-                <Route path="/article/:id" element={<ArticlePage />} />
-                <Route
-                  path="/saved"
-                  element={
-                    <ProtectedRoute>
-                      <SavedArticlesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <SettingsPage />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/404" element={<NotFoundPage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <Routes>
-              <Route path="/login" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <LoginPage />} />
-              <Route path="/signup" element={user && hasCompletedOnboarding ? <Navigate to="/" /> : <SignupPage />} />
-              <Route
-                path="/onboarding"
-                element={
-                  <ProtectedRoute>
-                    <OnboardingPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            </Suspense>
           </div>
         )}
       </div>

@@ -68,4 +68,5 @@
 
 - [ ] Add service worker PWA offline caching for saved articles.
 - [ ] Implement client-side reading time estimator badge on article cards.
-- [ ] Code-split large bundles via `vite.config.ts` (`rollupOptions.output.manualChunks`).
+- [x] Code-split large bundles via `vite.config.ts` (`rollupOptions.output.manualChunks`).
+

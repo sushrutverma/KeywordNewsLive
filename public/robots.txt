@@ -1,0 +1,11 @@
+# User-agent rules for Keyword News
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /onboarding
+Disallow: /saved
+Disallow: /settings
+
+# Canonical Sitemap
+Sitemap: https://keywordnews.live/sitemap.xml

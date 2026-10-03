@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { TrackedAsset } from './marketAssets';
+import { fetchQuotesForSymbols } from './marketService';
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
@@ -22,7 +23,7 @@ interface YahooSearchResponse {
 
 // In-memory cache for query results
 const queryCache = new Map<string, { timestamp: number; results: TrackedAsset[] }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
 
 export const searchOnlineStocks = async (query: string): Promise<TrackedAsset[]> => {
   const cleanQuery = query.trim();
@@ -37,7 +38,7 @@ export const searchOnlineStocks = async (query: string): Promise<TrackedAsset[]>
   }
 
   try {
-    const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQuery)}&quotesCount=10&newsCount=0`;
+    const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQuery)}&quotesCount=8&newsCount=0`;
     const proxyUrl = `${SUPABASE_URL}/functions/v1/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
 
     const response = await axios.get<YahooSearchResponse>(proxyUrl, {
@@ -48,7 +49,11 @@ export const searchOnlineStocks = async (query: string): Promise<TrackedAsset[]>
     });
 
     const quotes = response.data?.quotes || [];
-    const validQuotes = quotes.filter((q) => q.symbol && (q.shortname || q.longname));
+    const validQuotes = quotes.filter((q) => q.symbol && (q.shortname || q.longname)).slice(0, 8);
+
+    // Fetch live quotes in parallel for these symbols
+    const symbolsToFetch = validQuotes.map(q => q.symbol);
+    const liveQuotesMap = await fetchQuotesForSymbols(symbolsToFetch);
 
     const results: TrackedAsset[] = validQuotes.map((q) => {
       const isIndian = q.exchDisp === 'NSE' || q.exchDisp === 'BSE' || q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO');
@@ -73,14 +78,16 @@ export const searchOnlineStocks = async (query: string): Promise<TrackedAsset[]>
         q.quoteType === 'COMMODITY' ? 'commodity' :
         q.quoteType === 'CURRENCY' ? 'forex' : 'stock';
 
+      const live = liveQuotesMap.get(cleanSymbol.toUpperCase());
+
       return {
         id: `online-${cleanSymbol.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
         symbol: cleanSymbol,
         name: displayName,
         category,
-        price: q.exchDisp ? `${q.exchDisp}` : 'Live',
-        change: q.typeDisp || 'Asset',
-        percentChange: 0,
+        price: live ? live.formattedPrice : (q.exchDisp ? `${q.exchDisp}` : 'Live'),
+        change: live ? live.formattedChange : (q.typeDisp || 'Asset'),
+        percentChange: live ? live.percentChange : 0,
         region: isIndian ? 'IN' : 'GLOBAL',
         keywords: Array.from(keywordsSet)
       };

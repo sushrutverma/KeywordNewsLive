@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSearchHistory } from '../contexts/SearchHistoryContext';
 import { useNews } from '../contexts/NewsContext';
 import { news_sources, topics } from '../services/newsSources';
+import SEOHead from '../components/SEOHead';
 
 const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme();
@@ -13,6 +14,12 @@ const SettingsPage = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <SEOHead
+        title="Settings & Preferences | Keyword"
+        description="Manage your Keyword theme, news sources, topic follows, and search history."
+        canonicalPath="/settings"
+        noindex={true}
+      />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

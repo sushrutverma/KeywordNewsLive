@@ -25,7 +25,9 @@ export const MarketPulseRibbon: FC = () => {
     trackedAssets, 
     toggleTrackAsset, 
     addCustomTrackedAsset, 
-    resetWatchlist 
+    resetWatchlist,
+    refreshTrackedQuotes,
+    isRefreshingQuotes
   } = useNews();
 
   const [isMarketOpen, setIsMarketOpen] = useState(false);
@@ -86,6 +88,11 @@ export const MarketPulseRibbon: FC = () => {
     const interval = setInterval(updateMarketStatus, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Synchronize live quotes as soon as user opens Finance & Markets tab
+  useEffect(() => {
+    refreshTrackedQuotes();
+  }, [refreshTrackedQuotes]);
 
   const handleChipClick = (query: string) => {
     searchNews(query);
@@ -159,12 +166,23 @@ export const MarketPulseRibbon: FC = () => {
           <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
             Live Benchmarks
           </span>
-          <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs">
-            BETA
+          <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest rounded bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
+            REAL-TIME
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => refreshTrackedQuotes()}
+            disabled={isRefreshingQuotes}
+            title="Refresh real-time prices"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/80 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700/80 shadow-xs transition"
+          >
+            <RotateCcw size={11} className={isRefreshingQuotes ? 'animate-spin text-emerald-500' : 'text-gray-400 dark:text-zinc-500'} />
+            <span className="hidden sm:inline">{isRefreshingQuotes ? 'Updating...' : 'Refresh Quotes'}</span>
+          </button>
+
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/80 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700/80 shadow-xs">
             <span className={`w-2 h-2 rounded-full ${isMarketOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
             <span className="text-gray-700 dark:text-zinc-300">

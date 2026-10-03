@@ -8,6 +8,7 @@ import { Article } from '../types';
 import { aiService } from '../services/aiService';
 import { scraperService, sanitizeArticleHtml } from '../services/scraperService';
 import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
+import SEOHead from '../components/SEOHead';
 
 const isSafeUrl = (url?: string): boolean => {
   if (!url) return false;
@@ -22,8 +23,9 @@ const isSafeUrl = (url?: string): boolean => {
 const ArticlePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { articles, savedArticles, saveArticle, removeFromSaved } = useNews();
+  const { articles, savedArticles, saveArticle, removeFromSaved, isLoading } = useNews();
   const [article, setArticle] = useState<Article | null>(null);
+  const [notFound, setNotFound] = useState(false);
   
   // Full text scraper state
   const [fullTextHtml, setFullTextHtml] = useState<string | null>(null);
@@ -60,6 +62,7 @@ const ArticlePage = () => {
       const foundArticle = articles.find(a => a.id === id);
       if (foundArticle) {
         setArticle(foundArticle);
+        setNotFound(false);
         // Calculate reading time (average 200 words per minute)
         const wordCount = foundArticle.content?.split(' ').length || 0;
         setReadingTime(Math.ceil(wordCount / 200));
@@ -68,14 +71,15 @@ const ArticlePage = () => {
         const savedArticle = savedArticles.find(a => a.id === id);
         if (savedArticle) {
           setArticle(savedArticle);
+          setNotFound(false);
           const wordCount = savedArticle.content?.split(' ').length || 0;
           setReadingTime(Math.ceil(wordCount / 200));
-        } else {
-          navigate('/');
+        } else if (!isLoading && articles.length > 0) {
+          setNotFound(true);
         }
       }
     }
-  }, [id, articles, navigate, savedArticles]);
+  }, [id, articles, savedArticles, isLoading]);
 
   // Load full article text via scraperService
   useEffect(() => {
@@ -272,6 +276,33 @@ const ArticlePage = () => {
   const sentimentLabel = sentiment > 56 ? 'Optimistic / Positive' : sentiment < 44 ? 'Cautious / Negative' : 'Neutral';
   const sentimentColor = sentiment > 56 ? 'text-emerald-500' : sentiment < 44 ? 'text-rose-500' : 'text-amber-500';
 
+  if (notFound) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
+        <SEOHead
+          title="Article Not Found | Keyword"
+          description="The requested article could not be found or has expired."
+          canonicalPath={`/article/${id || ''}`}
+          noindex={true}
+        />
+        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4 text-amber-500">
+          <AlertCircle size={28} />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Article Not Found</h1>
+        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6 max-w-md">
+          This article might have been archived or removed from the live feed.
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className="fab px-5 py-2.5 rounded-xl text-white text-sm font-medium inline-flex items-center"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to Feed
+        </button>
+      </div>
+    );
+  }
+
   if (!article) {
     return (
       <div className="min-h-screen p-6 max-w-4xl mx-auto">
@@ -282,6 +313,16 @@ const ArticlePage = () => {
 
   return (
     <div className="min-h-screen">
+      <SEOHead
+        title={`${article.title} | Keyword`}
+        description={article.content ? article.content.replace(/<[^>]*>/g, '').slice(0, 160) : 'Read the full story on Keyword.'}
+        canonicalPath={`/article/${article.id}`}
+        noindex={false}
+        ogType="article"
+        ogImage={article.image || '/keyword-logo.png'}
+        publishedTime={article.pubDate}
+        author={article.source}
+      />
       {/* 1. If article has image: Hero Section */}
       {article.image ? (
         <div className="relative h-[36vh] sm:h-[45vh] overflow-hidden rounded-2xl mb-6 shadow-md">
