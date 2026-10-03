@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { ArrowLeft, Share2, Bookmark, ExternalLink, Sparkles, AlertCircle, Clock, Eye, X } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { Article } from '../types';
-import { aiService } from '../services/aiService';
+import { aiService, cleanAiSummary } from '../services/aiService';
 import { scraperService, sanitizeArticleHtml } from '../services/scraperService';
 import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
 import SEOHead from '../components/SEOHead';
@@ -586,7 +586,7 @@ const ArticlePage = () => {
                     </div>
                   ) : (
                     <p className="text-gray-700 dark:text-zinc-300 leading-relaxed text-sm whitespace-pre-line">
-                      {summary}
+                      {cleanAiSummary(summary)}
                     </p>
                   )}
                 </div>

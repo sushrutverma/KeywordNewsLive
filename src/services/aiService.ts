@@ -145,6 +145,26 @@ async function callMistralWithFallback(messages: MistralMessage[]): Promise<{ co
 
 const isAiConfigured = Boolean(MISTRAL_API_KEY || (SUPABASE_URL && SUPABASE_ANON_KEY));
 
+export const cleanAiSummary = (raw: string): string => {
+  if (!raw) return '';
+  return raw
+    // Strip bold & italic markdown asterisks
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    // Strip markdown headers
+    .replace(/^#+\s+/gm, '')
+    // Strip bullet dashes or stars
+    .replace(/^[-*•]\s+/gm, '')
+    // Normalize quotes
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    // Clean up excessive whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export const aiService = {
   async analyze(text: string) {
     if (!isAiConfigured) {
@@ -162,7 +182,7 @@ export const aiService = {
       const { content } = await callMistralWithFallback([
         {
           role: 'system',
-          content: 'You are an expert at analyzing text. Analyze the following text and provide key insights.'
+          content: 'You are an expert at analyzing text. Analyze the following text and provide key insights in clean prose without markdown formatting.'
         },
         {
           role: 'user',
@@ -171,7 +191,7 @@ export const aiService = {
       ]);
 
       return {
-        analysis: content
+        analysis: cleanAiSummary(content)
       };
     } catch (error) {
       console.error('AI analysis error:', error);
@@ -195,7 +215,14 @@ export const aiService = {
       const { content } = await callMistralWithFallback([
         {
           role: 'system',
-          content: 'You are an expert at summarizing news and articles. Provide a concise, clear summary in 2-3 sentences.'
+          content: `You are an expert news editor and fact-checker. 
+Summarize the provided news story in 2 to 3 natural, clear, professional sentences.
+
+STRICT EDITORIAL RULES:
+1. Write in clear, flowing journalistic prose.
+2. DO NOT use markdown bolding (NEVER use **asterisks**), bullet points, or headers.
+3. Stick strictly to the facts explicitly stated in the provided text. Do NOT extrapolate, hallucinate, or add dates, flight numbers, or casualty statistics that are not directly present in the source text.
+4. Keep the output as clean, unadorned sentences.`
         },
         {
           role: 'user',
@@ -204,7 +231,7 @@ export const aiService = {
       ]);
 
       return {
-        summary: content
+        summary: cleanAiSummary(content)
       };
     } catch (error) {
       console.error('AI summarization error:', error);
@@ -229,7 +256,11 @@ export const aiService = {
       const { content } = await callMistralWithFallback([
         {
           role: 'system',
-          content: 'You are an expert educational assistant. Explain the requested concept, term, or entity clearly, objectively, and extremely concisely. Your explanation MUST be at most 2-3 sentences long.'
+          content: `You are an expert educational journalist. Explain the requested concept, term, or entity clearly, objectively, and concisely in 2 to 3 sentences.
+RULES:
+1. Write in natural, unadorned prose.
+2. DO NOT use markdown bolding (no **asterisks**) or bullet points.
+3. Keep the explanation accessible to a general reader.`
         },
         {
           role: 'user',
@@ -238,7 +269,7 @@ export const aiService = {
       ]);
 
       return {
-        explanation: content
+        explanation: cleanAiSummary(content)
       };
     } catch (error) {
       console.error('AI concept explanation error:', error);

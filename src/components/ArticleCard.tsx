@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Bookmark, Share2, ExternalLink, Sparkles, X, Layers, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { Article } from '../types';
 import { useNews } from '../contexts/NewsContext';
-import { aiService } from '../services/aiService';
+import { aiService, cleanAiSummary } from '../services/aiService';
 import { news_sources } from '../services/newsSources';
 
 interface ArticleCardProps {
@@ -442,7 +442,7 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
                 <div className="text-red-500 dark:text-red-400 text-center py-8">{error}</div>
               ) : (
                 <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{summary}</p>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">{cleanAiSummary(summary)}</p>
                 </div>
               )}
             </motion.div>
