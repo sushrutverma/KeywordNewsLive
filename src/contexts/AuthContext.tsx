@@ -38,16 +38,52 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    try {
+      const allKeys = Object.keys(localStorage);
+      for (const key of allKeys) {
+        if (key.startsWith('user_profile_')) {
+          const val = localStorage.getItem(key);
+          if (val) {
+            const parsed = JSON.parse(val);
+            if (parsed && (parsed.full_name || parsed.occupation)) return parsed;
+          }
+        }
+      }
+      const generic = localStorage.getItem('user_profile_data');
+      if (generic) return JSON.parse(generic);
+    } catch {}
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
+    // 1. Immediately hydrate from local cache if not yet set
     try {
-      const { data, error } = await supabase
+      const localData = localStorage.getItem(`user_profile_${userId}`) || localStorage.getItem('user_profile_data');
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        if (parsed) {
+          setProfile(parsed);
+        }
+      }
+    } catch {}
+
+    // 2. Fetch fresh from Supabase with a 3.5s timeout guarantee
+    try {
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error('Profile fetch timeout') }), 3500)
+      );
+
+      const res = await Promise.race([queryPromise, timeoutPromise]);
+      const data = res?.data;
+      const error = res?.error;
 
       if (!error && data) {
         setProfile(data);
@@ -57,24 +93,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return data;
       }
     } catch (err) {
-      console.warn('Could not fetch user profile from database, checking local storage:', err);
+      console.warn('Could not fetch user profile from database, retained local profile:', err);
     }
 
-    // Local profile fallback
-    try {
-      const localData = localStorage.getItem(`user_profile_${userId}`) || localStorage.getItem('user_profile_data');
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        setProfile(parsed);
-        return parsed;
-      } else {
-        setProfile(null);
-        return null;
-      }
-    } catch {
-      setProfile(null);
-      return null;
-    }
+    return null;
   };
 
   const refreshProfile = async () => {
@@ -85,6 +107,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
+
+    // Hard safety timeout: under no circumstance should initial loading stay true for more than 1000ms
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1000);
 
     // Check active sessions and set user + profile atomically
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -98,6 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(null);
       }
       if (isMounted) setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
 
     // Listen for changes on auth state
@@ -109,16 +138,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setProfile(null);
         setLoading(false);
-      } else if (currentUser) {
-        setLoading(true);
+      } else if (event === 'SIGNED_IN') {
         setUser(currentUser);
         await fetchProfile(currentUser.id);
         if (isMounted) setLoading(false);
+      } else {
+        // TOKEN_REFRESHED, USER_UPDATED, etc.
+        // DO NOT set loading=true! Update user/profile silently in background without blocking screen!
+        setUser(currentUser);
+        fetchProfile(currentUser.id);
       }
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
   }, []);

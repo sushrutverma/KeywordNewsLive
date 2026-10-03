@@ -50,7 +50,16 @@ interface NewsProviderProps {
 }
 
 export const NewsProvider = ({ children }: NewsProviderProps) => {
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<Article[]>(() => {
+    try {
+      const cached = localStorage.getItem('news_cache_v3');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  });
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isProgressiveLoading, setIsProgressiveLoading] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Article[]>(() => {
