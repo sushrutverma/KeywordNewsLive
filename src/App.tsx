@@ -10,6 +10,10 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 const PageLoader = () => (
   <div className="flex-1 flex items-center justify-center min-h-[40vh] p-8">
@@ -21,6 +25,7 @@ const PageLoader = () => (
 );
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import { MarketTicker } from './components/MarketTicker';
 import { SearchModal } from './components/SearchModal';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -149,11 +154,16 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/404" element={<NotFoundPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
             </div>
+            <Footer />
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center p-4">

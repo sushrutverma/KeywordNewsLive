@@ -10,6 +10,7 @@ import { scraperService, sanitizeArticleHtml } from '../services/scraperService'
 import { ArticlePageSkeleton } from '../components/ArticleSkeleton';
 import SEOHead from '../components/SEOHead';
 import Breadcrumbs from '../components/Breadcrumbs';
+import AuthorBio from '../components/AuthorBio';
 
 const isSafeUrl = (url?: string): boolean => {
   if (!url) return false;
@@ -526,6 +527,15 @@ const ArticlePage = () => {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Author & Source Attribution */}
+                <div className="px-6 md:px-8 pb-4">
+                  <AuthorBio
+                    name={article.source}
+                    source={article.source}
+                    sourceUrl={article.link}
+                  />
                 </div>
 
                 {/* Footer Action */}
