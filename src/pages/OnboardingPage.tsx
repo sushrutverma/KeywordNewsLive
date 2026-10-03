@@ -87,6 +87,7 @@ const OnboardingPage = () => {
       localStorage.setItem('followedTopics', JSON.stringify(followedTopics));
 
       if (user) {
+        localStorage.setItem(`user_profile_${user.id}`, JSON.stringify(profileData));
         await upsertProfile(profileData);
       } else {
         localStorage.setItem('guest_profile', JSON.stringify(profileData));

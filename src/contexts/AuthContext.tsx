@@ -51,7 +51,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!error && data) {
         setProfile(data);
-        return;
+        try {
+          localStorage.setItem(`user_profile_${userId}`, JSON.stringify(data));
+        } catch {}
+        return data;
       }
     } catch (err) {
       console.warn('Could not fetch user profile from database, checking local storage:', err);
@@ -59,14 +62,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Local profile fallback
     try {
-      const localData = localStorage.getItem(`user_profile_${userId}`);
+      const localData = localStorage.getItem(`user_profile_${userId}`) || localStorage.getItem('user_profile_data');
       if (localData) {
-        setProfile(JSON.parse(localData));
+        const parsed = JSON.parse(localData);
+        setProfile(parsed);
+        return parsed;
       } else {
         setProfile(null);
+        return null;
       }
     } catch {
       setProfile(null);
+      return null;
     }
   };
 
@@ -77,30 +84,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Check active sessions and sets the user
+    let isMounted = true;
+
+    // Check active sessions and set user + profile atomically
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!isMounted) return;
       const currentUser = session?.user ?? null;
-      setUser(currentUser);
       if (currentUser) {
+        setUser(currentUser);
         await fetchProfile(currentUser.id);
       } else {
+        setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     });
 
     // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
       const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      } else {
+
+      if (event === 'SIGNED_OUT' || !currentUser) {
+        setUser(null);
         setProfile(null);
+        setLoading(false);
+      } else if (currentUser) {
+        setLoading(true);
+        setUser(currentUser);
+        await fetchProfile(currentUser.id);
+        if (isMounted) setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string) => {
@@ -113,15 +133,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      if (data?.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Sign out error:', e);
+    } finally {
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+    }
   };
 
   const updateDurationFilter = async (duration: string) => {
