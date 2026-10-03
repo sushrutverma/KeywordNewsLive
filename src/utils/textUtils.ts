@@ -87,3 +87,17 @@ export const formatArticleDate = (date: string | Date): string => {
     return 'Recent';
   }
 };
+
+/**
+ * Calculates a sentiment score between 15 and 85 based on market keyword sentiment.
+ */
+export const calculateSentimentScore = (content?: string): number => {
+  if (!content) return 50;
+  const text = content.toLowerCase();
+  let score = 50;
+  const positiveWords = ['gain', 'profit', 'rise', 'success', 'benefit', 'growth', 'positive', 'win', 'improve', 'advance', 'bullish', 'innovat', 'lead', 'excellent'];
+  const negativeWords = ['loss', 'decline', 'crash', 'fail', 'drop', 'negative', 'lose', 'fall', 'warning', 'bearish', 'risk', 'danger', 'concern', 'threat', 'difficult'];
+  positiveWords.forEach(w => { if (text.includes(w)) score += 4; });
+  negativeWords.forEach(w => { if (text.includes(w)) score -= 4; });
+  return Math.max(15, Math.min(85, score));
+};
