@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback, useRef } from 'react';
 import { useQuery } from 'react-query';
 import { fetchNewsProgressively, interleaveArticles, clusterArticles } from '../services/newsService';
 import { news_sources } from '../services/newsSources';
 import { Article } from '../types';
 import { TrackedAsset, ASSET_CATALOG, DEFAULT_WATCHLIST_IDS, findMatchedAsset } from '../services/marketAssets';
-import { fetchQuotesForSymbols, fetchQuoteForSymbol } from '../services/marketService';
+import { fetchQuotesForSymbols } from '../services/marketService';
 import { supabase } from '../lib/supabase';
 
 interface NewsContextType {
@@ -57,10 +57,11 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {}
+    } catch (_err) {
+      // Fallback to empty articles on cache read failure
+    }
     return [];
   });
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isProgressiveLoading, setIsProgressiveLoading] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Article[]>(() => {
     const saved = localStorage.getItem('savedArticles');
@@ -187,10 +188,9 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
     localStorage.setItem('followedTopics', JSON.stringify(followedTopics));
   }, [followedTopics]);
 
-  // Deriving filteredArticles reactively
-  useEffect(() => {
+  // Deriving filteredArticles efficiently via single-pass memoization (avoids double render cycles)
+  const filteredArticles = useMemo(() => {
     let result = articles;
-    console.log(`[NewsContext] useEffect - articles size: ${articles.length}, selectedTopicId: ${selectedTopicId}, keyword: "${currentKeyword}"`);
 
     // Filter by topic first
     if (selectedTopicId !== 'all') {
@@ -198,7 +198,6 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         const topicId = sourceToTopicMap[article.source];
         return topicId === selectedTopicId;
       });
-      console.log(`[NewsContext] filtered by topic - remaining: ${result.length}`);
     }
 
     // Filter by keyword if search is active
@@ -209,7 +208,6 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
           article.title.toLowerCase().includes(lowerKeyword) ||
           (article.content && article.content.toLowerCase().includes(lowerKeyword))
       );
-      console.log(`[NewsContext] filtered by keyword - remaining: ${result.length}`);
     }
 
     // 1. Cluster identical stories across publishers first (promoting longest content and unifying multi-source perspectives)
@@ -217,7 +215,6 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
 
     // 2. Apply the 70/30 regional mix and round-robin source interleaving (which ranks by content length & score)
     const interleavedResult = interleaveArticles(clusteredResult);
-    console.log(`[NewsContext] final clustered & interleaved size: ${interleavedResult.length} (from original ${result.length})`);
 
     // 3. Prioritize articles matching user's tracked assets / watchlist to the very top!
     // Smart ranking strictly applies ONLY when viewing the Finance & Markets section.
@@ -241,14 +238,11 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
         }
       });
 
-      console.log(`[NewsContext] Prioritized ${watchlistArticles.length} watchlist stories to top of finance feed`);
-      setFilteredArticles([...watchlistArticles, ...regularArticles]);
-    } else {
-      // In all other sections (Daily News, UPSC, Tech, Sports, etc.), normal interleaving without finance prioritization
-      setFilteredArticles(
-        interleavedResult.map(art => ({ ...art, isWatchlistMatch: false }))
-      );
+      return [...watchlistArticles, ...regularArticles];
     }
+
+    // In all other sections (Daily News, UPSC, Tech, Sports, etc.), normal interleaving without finance prioritization
+    return interleavedResult.map(art => ({ ...art, isWatchlistMatch: false }));
   }, [articles, currentKeyword, selectedTopicId, sourceToTopicMap, trackedAssets]);
 
   // Adjust active topic if the user unfollows their currently selected topic
@@ -297,7 +291,16 @@ export const NewsProvider = ({ children }: NewsProviderProps) => {
           .eq('user_id', user.id);
 
         if (!error && data && data.length > 0) {
-          const cloudArticles: Article[] = data.map((row: any) => ({
+          interface SavedArticleRow {
+            id: string;
+            title: string;
+            link?: string | null;
+            pub_date?: string | null;
+            content?: string | null;
+            image?: string | null;
+            source?: string | null;
+          }
+          const cloudArticles: Article[] = (data as unknown as SavedArticleRow[]).map(row => ({
             id: row.id,
             title: row.title,
             link: row.link || '',

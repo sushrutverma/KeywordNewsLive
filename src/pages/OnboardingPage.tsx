@@ -93,7 +93,7 @@ const OnboardingPage = () => {
         localStorage.setItem('guest_profile', JSON.stringify(profileData));
       }
       navigate('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Profile sync notice (using local storage):', err);
       navigate('/');
     } finally {

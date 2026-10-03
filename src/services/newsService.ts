@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import { Article } from '../types';
 import { news_sources } from './newsSources';
 
@@ -64,7 +63,9 @@ const parseRssXml = (xmlText: string): { items: CustomItem[] } => {
       if (!el) {
         try {
           el = itemEl.querySelector(tagName.replace(':', '\\:')) as Element;
-        } catch {}
+        } catch (_err) {
+          // Ignore query selector syntax error on special character tags
+        }
       }
       return el ? el.textContent || '' : '';
     };
@@ -80,7 +81,9 @@ const parseRssXml = (xmlText: string): { items: CustomItem[] } => {
       if (!el) {
         try {
           el = itemEl.querySelector(tagName.replace(':', '\\:')) as Element;
-        } catch {}
+        } catch (_err) {
+          // Ignore query selector syntax error on special character tags
+        }
       }
       return el ? el.getAttribute('url') || '' : '';
     };
@@ -536,8 +539,6 @@ export const clusterArticles = (articles: Article[]): Article[] => {
 export const fetchNewsProgressively = async (
   onProgress?: (articles: Article[], isComplete: boolean) => void
 ): Promise<Article[]> => {
-  console.log('🚀 Starting progressive news fetch...');
-  
   // Check cache first (only if non-empty)
   const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
   const now = new Date().getTime();
@@ -548,7 +549,6 @@ export const fetchNewsProgressively = async (
       try {
         const cachedArticles: Article[] = JSON.parse(cachedData);
         if (Array.isArray(cachedArticles) && cachedArticles.length > 0) {
-          console.log(`📦 Using cached data: ${cachedArticles.length} articles`);
           onProgress?.(cachedArticles, true);
           return cachedArticles;
         }

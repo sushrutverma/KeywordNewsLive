@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle, Building, Clock } from 'lucide-react';
+import { Mail, MessageSquare, Send, CheckCircle2, Building, Clock } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
 import Breadcrumbs from '../components/Breadcrumbs';
 

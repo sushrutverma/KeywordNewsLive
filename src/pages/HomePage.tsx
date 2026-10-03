@@ -20,8 +20,6 @@ const HomePage = () => {
     setSelectedTopicId
   } = useNews();
 
-  console.log(`[HomePage] render - filteredArticles size: ${filteredArticles.length}, isLoading: ${isLoading}, isError: ${isError}, selectedTopicId: ${selectedTopicId}`);
-
   const activeTabs = topics.filter(topic => followedTopics?.includes(topic.id)) || [];
   
   return (

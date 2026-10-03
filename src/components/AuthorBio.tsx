@@ -1,5 +1,4 @@
-import React from 'react';
-import { User, ExternalLink, ShieldCheck, Newspaper } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Newspaper } from 'lucide-react';
 
 export interface AuthorBioProps {
   name?: string;

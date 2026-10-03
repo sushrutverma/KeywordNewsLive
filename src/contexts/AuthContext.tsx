@@ -22,7 +22,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   logout?: () => Promise<void>;
   updateDurationFilter: (duration: string) => Promise<void>;
-  upsertProfile: (profileUpdates: Partial<Profile>) => Promise<{ error: any }>;
+  upsertProfile: (profileUpdates: Partial<Profile>) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -52,7 +52,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       const generic = localStorage.getItem('user_profile_data');
       if (generic) return JSON.parse(generic);
-    } catch {}
+    } catch (_err) {
+      // Ignore initial local storage read errors
+    }
     return null;
   });
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(parsed);
         }
       }
-    } catch {}
+    } catch (_err) {
+      // Ignore local profile read errors
+    }
 
     // 2. Fetch fresh from Supabase with a 3.5s timeout guarantee
     try {
@@ -89,7 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(data);
         try {
           localStorage.setItem(`user_profile_${userId}`, JSON.stringify(data));
-        } catch {}
+        } catch (_err) {
+          // Ignore local profile write error
+        }
         return data;
       }
     } catch (err) {
@@ -180,8 +186,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetchProfile(data.user.id);
       }
       return { error: null };
-    } catch (err: any) {
-      return { error: err };
+    } catch (err: unknown) {
+      return { error: err as AuthError };
     } finally {
       setLoading(false);
     }
@@ -245,7 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(data);
       }
       return { error: null };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Error syncing profile to remote Supabase (local fallback retained):', err);
       return { error: null };
     }

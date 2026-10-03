@@ -6,7 +6,6 @@ import { Bookmark, Share2, ExternalLink, Sparkles, X, Layers, ChevronDown, Chevr
 import { Article } from '../types';
 import { useNews } from '../contexts/NewsContext';
 import { aiService, cleanAiSummary } from '../services/aiService';
-import { news_sources } from '../services/newsSources';
 
 interface ArticleCardProps {
   article: Article;
@@ -113,7 +112,6 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
         });
       } else {
         await navigator.clipboard.writeText(article.link || '');
-        console.log('Link copied to clipboard!');
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -166,13 +164,6 @@ const ArticleCard: FC<ArticleCardProps> = ({ article, keyword, isFeatured, prior
     } catch {
       return 'Unknown date';
     }
-  };
-
-  const getCategoryClass = () => {
-    if (!article.source) return '';
-    const sourceObj = news_sources.find(s => s.name.toLowerCase() === article.source.toLowerCase());
-    const category = sourceObj?.category || 'news';
-    return `card-${category.toLowerCase().replace(/\s+/g, '')}`;
   };
 
   const formattedContent = formatContent(article.content || '');

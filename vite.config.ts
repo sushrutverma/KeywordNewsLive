@@ -25,7 +25,7 @@ export default defineConfig({
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            if (id.includes('@mozilla/readability') || id.includes('dompurify') || id.includes('rss-parser')) {
+            if (id.includes('@mozilla/readability') || id.includes('dompurify')) {
               return 'vendor-parsers';
             }
             if (id.includes('react-router') || id.includes('react-query')) {

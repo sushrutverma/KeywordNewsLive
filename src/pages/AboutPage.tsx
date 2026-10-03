@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Cpu, Globe2, Newspaper, Building2, CheckCircle2 } from 'lucide-react';
+import { Shield, Sparkles, Cpu, Globe2, Building2 } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
 import Breadcrumbs from '../components/Breadcrumbs';
 

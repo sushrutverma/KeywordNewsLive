@@ -45,8 +45,9 @@ const SignupPage = () => {
       const { error: signUpError } = await signUp(email, password);
       if (signUpError) throw signUpError;
       navigate('/');
-    } catch (err: any) {
-      setError(err?.message || 'Failed to create an account. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create an account. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
